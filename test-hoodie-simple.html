@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Capuche Simple</title>
+  <style>
+    body {
+      background: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+    
+    h1 {
+      color: white;
+      text-align: center;
+      margin: 40px 0 20px 0;
+      font-size: 1.8rem;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      width: 350px;
+      position: relative;
+    }
+    
+    .hoodie {
+      width: 100%;
+      height: 300px;
+      background: #f0f0f0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #666;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    
+    .controls label {
+      color: black;
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .controls input[type="color"] {
+      width: 35px;
+      height: 35px;
+      border: 1px solid black;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .controls input[type="file"] {
+      width: 35px;
+      height: 35px;
+      border: 1px solid black;
+      border-radius: 4px;
+      cursor: pointer;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <button class="close-btn">×</button>
+  
+  <h1>Personnalise ta capuche</h1>
+  
+  <div class="container">
+    <div class="hoodie">🧥</div>
+    
+    <div class="controls">
+      <label>Choisir couleur :
+        <input type="color" value="#ffffff" />
+      </label>
+      
+      <label>Ajouter logo :
+        <input type="file" accept="image/*" />
+      </label>
+    </div>
+  </div>
+</body>
+</html>

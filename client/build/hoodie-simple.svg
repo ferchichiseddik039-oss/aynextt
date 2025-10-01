@@ -1,0 +1,29 @@
+<svg width="300" height="400" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Capuche -->
+  <path d="M50 60 Q150 20 250 60 L250 100 Q200 80 150 100 Q100 80 50 100 Z" fill="currentColor" stroke="#333" stroke-width="2"/>
+  
+  <!-- Cordons -->
+  <line x1="130" y1="80" x2="170" y2="80" stroke="#333" stroke-width="2"/>
+  <line x1="130" y1="80" x2="120" y2="90" stroke="#333" stroke-width="1.5"/>
+  <line x1="170" y1="80" x2="180" y2="90" stroke="#333" stroke-width="1.5"/>
+  
+  <!-- Corps -->
+  <rect x="50" y="100" width="200" height="250" fill="currentColor" stroke="#333" stroke-width="2"/>
+  
+  <!-- Manches -->
+  <ellipse cx="35" cy="170" rx="30" ry="80" fill="currentColor" stroke="#333" stroke-width="2"/>
+  <ellipse cx="265" cy="170" rx="30" ry="80" fill="currentColor" stroke="#333" stroke-width="2"/>
+  
+  <!-- Poignets -->
+  <ellipse cx="35" cy="250" rx="25" ry="20" fill="rgba(0,0,0,0.2)" stroke="#333" stroke-width="1"/>
+  <ellipse cx="265" cy="250" rx="25" ry="20" fill="rgba(0,0,0,0.2)" stroke="#333" stroke-width="1"/>
+  
+  <!-- Poche kangourou -->
+  <path d="M80 220 Q150 200 220 220 L220 280 Q150 270 80 280 Z" fill="rgba(0,0,0,0.1)" stroke="#333" stroke-width="1"/>
+  
+  <!-- Ourlet -->
+  <rect x="50" y="340" width="200" height="25" fill="rgba(0,0,0,0.1)" stroke="#333" stroke-width="1"/>
+  
+  <!-- Zone logo -->
+  <circle cx="150" cy="200" r="30" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-dasharray="5,5"/>
+</svg>
