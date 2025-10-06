@@ -1,0 +1,13 @@
+server.js
+server-test.js
+src/
+uploads/
+node_modules/
+.env
+.env.local
+.git/
+.gitignore
+README.md
+*.md
+deploy-*.bat
+deploy-*.ps1

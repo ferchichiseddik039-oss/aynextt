@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// Configuration API forcée - ignore complètement les variables d'environnement
+const API_BASE_URL = '/api';
+
 // Configuration de base pour axios
 const api = axios.create({
-  baseURL: 'http://localhost:5001',
+  baseURL: API_BASE_URL,
   timeout: 30000, // Augmenté à 30 secondes
   headers: {
     'Content-Type': 'application/json',

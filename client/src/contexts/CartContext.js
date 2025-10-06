@@ -24,7 +24,7 @@ export const CartProvider = ({ children }) => {
     
     try {
       setLoading(true);
-      const res = await api.get('/api/cart');
+      const res = await api.get('/cart');
       setCart(res.data);
     } catch (err) {
       console.error('Erreur lors du chargement du panier:', err);
@@ -55,7 +55,7 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       console.log('Envoi de la requête au serveur...');
-      const res = await api.post('/api/cart/ajouter', {
+      const res = await api.post('/cart/ajouter', {
         produitId: productId,
         quantite: quantity,
         taille: size,
@@ -131,7 +131,7 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     try {
       setLoading(true);
-      await api.delete('/api/cart/vider');
+      await api.delete('/cart/vider');
       
       setCart({ articles: [] });
       toast.success('Panier vidé !');

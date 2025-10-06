@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: boutique-aynext-unified
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://ferchichiseddik039:52141707@cluster0.6rx5.mongodb.net/boutique-vetements?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        value: aynext_jwt_secret_2024_secure_key
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000

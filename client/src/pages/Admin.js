@@ -158,7 +158,7 @@ const Admin = () => {
       // Charger les produits
       console.log('Chargement des produits...');
       try {
-        const productsResponse = await api.get('/api/products?limit=100'); // Charger plus de produits pour avoir le vrai total
+        const productsResponse = await api.get('/products?limit=100'); // Charger plus de produits pour avoir le vrai total
         console.log('Données produits reçues:', productsResponse.data);
         const loadedProducts = productsResponse.data.produits || productsResponse.data.products || [];
         console.log('Nombre de produits chargés:', loadedProducts.length);
@@ -178,7 +178,7 @@ const Admin = () => {
 
       // Charger les commandes récentes (toutes les commandes pour l'admin)
       try {
-        const ordersResponse = await api.get('/api/orders/admin/toutes?limit=10');
+        const ordersResponse = await api.get('/orders/admin/toutes?limit=10');
         setOrders(ordersResponse.data.commandes || ordersResponse.data.orders || []);
       } catch (error) {
         console.error('Erreur lors du chargement des commandes:', error);
@@ -225,7 +225,7 @@ const Admin = () => {
   const fetchAllOrders = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/orders/admin/toutes');
+      const response = await api.get('/orders/admin/toutes');
       setOrders(response.data.commandes || response.data.orders || []);
     } catch (error) {
       console.error('Erreur lors du chargement des commandes:', error);
@@ -1442,7 +1442,7 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
         })) // Convertir les URLs en objets avec url et alt
       };
 
-      const response = await api.post('/api/products', productData);
+      const response = await api.post('/products', productData);
 
       if (response.status === 201) {
         const newProduct = response.data;

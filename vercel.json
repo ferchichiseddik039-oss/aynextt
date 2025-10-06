@@ -16,6 +16,7 @@
       "src": "/api/(.*)",
       "dest": "/server.js"
     },
+
     {
       "src": "/uploads/(.*)",
       "dest": "/server.js"
@@ -34,3 +35,4 @@
     }
   }
 }
+

@@ -80,3 +80,5 @@ En cas de problème :
 ---
 
 **🎉 Votre boutique sera bientôt en ligne et visible sur Google !**
+
+
