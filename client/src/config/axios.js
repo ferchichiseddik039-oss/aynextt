@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Configuration API forcée - ignore complètement les variables d'environnement
-const API_BASE_URL = '/api';
+// Configuration API - utilise l'URL complète pour éviter les problèmes de proxy
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 // Configuration de base pour axios
 const api = axios.create({
@@ -35,7 +35,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expiré ou invalide
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Rediriger vers admin-login si on est sur une page admin
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith('/admin')) {
+        window.location.href = '/admin/login';
+      } else {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

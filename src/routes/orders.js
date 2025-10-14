@@ -170,6 +170,116 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/orders/custom-hoodie
+// @desc    Créer une commande de hoodie personnalisé
+// @access  Private
+router.post('/custom-hoodie', auth, [
+  body('type').equals('custom_hoodie').withMessage('Type de commande invalide'),
+  body('couleur').notEmpty().withMessage('Couleur requise'),
+  body('logo').notEmpty().withMessage('Logo requis'),
+  body('logoPosition').notEmpty().withMessage('Position du logo requise'),
+  body('logoSize').isInt({ min: 40, max: 120 }).withMessage('Taille du logo invalide'),
+  body('prix').isFloat({ min: 0 }).withMessage('Prix invalide'),
+  body('quantite').isInt({ min: 1 }).withMessage('Quantité invalide'),
+  body('taille').notEmpty().withMessage('Taille requise')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const {
+      type,
+      couleur,
+      couleurNom,
+      logo,
+      logoPosition,
+      logoSize,
+      prix,
+      quantite,
+      taille,
+      notes
+    } = req.body;
+
+    // Log pour débogage
+    console.log('=== DONNÉES REÇUES POUR COMMANDE PERSONNALISÉE ===');
+    console.log('Type:', type);
+    console.log('Couleur:', couleur);
+    console.log('Couleur nom:', couleurNom);
+    console.log('Logo (premiers 100 caractères):', logo ? logo.substring(0, 100) + '...' : 'AUCUN LOGO');
+    console.log('Position logo:', logoPosition);
+    console.log('Taille logo:', logoSize);
+    console.log('Prix:', prix);
+    console.log('Quantité:', quantite);
+    console.log('Taille:', taille);
+    console.log('Notes:', notes);
+    console.log('================================================');
+
+    // Créer l'ordre personnalisé
+    const customOrder = new Order({
+      utilisateur: req.user.id,
+      statut: 'en_attente',
+      sousTotal: prix * quantite,
+      fraisLivraison: 0,
+      reduction: 0,
+      total: prix * quantite,
+      articles: [{
+        produit: null, // Pas de produit spécifique pour un hoodie personnalisé
+        nom: `Hoodie personnalisé - ${couleurNom || 'Couleur personnalisée'}`,
+        quantite: quantite,
+        taille: taille,
+        couleur: couleur,
+        prixUnitaire: prix,
+        prixTotal: prix * quantite,
+        type: 'custom_hoodie',
+        customData: {
+          logo: logo,
+          logoPosition: logoPosition,
+          logoSize: logoSize,
+          couleurCode: couleur,
+          couleurNom: couleurNom || 'Couleur personnalisée'
+        }
+      }],
+      adresseLivraison: {
+        // Utiliser les données de l'utilisateur par défaut
+        nom: req.user.nom || '',
+        prenom: req.user.prenom || '',
+        rue: req.user.adresse?.rue || '',
+        ville: req.user.adresse?.ville || '',
+        codePostal: req.user.adresse?.codePostal || '',
+        pays: req.user.adresse?.pays || 'Tunisie',
+        telephone: req.user.telephone || ''
+      },
+      methodePaiement: 'en_attente',
+      notes: notes || ''
+    });
+
+    await customOrder.save();
+
+    // Émettre un événement WebSocket pour les statistiques mises à jour
+    const io = req.app.get('io');
+    if (io && global.emitStatsUpdate) {
+      global.emitStatsUpdate(io);
+    }
+
+    console.log(`✅ Commande de hoodie personnalisé créée - ID: ${customOrder._id}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Commande de hoodie personnalisé créée avec succès',
+      order: customOrder
+    });
+
+  } catch (err) {
+    console.error('❌ Erreur lors de la création de la commande personnalisée:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erreur lors de la création de la commande personnalisée' 
+    });
+  }
+});
+
 // @route   PUT /api/orders/:id/statut
 // @desc    Mettre à jour le statut d'une commande (Admin)
 // @access  Private (Admin)
@@ -241,155 +351,131 @@ router.put('/:id/statut', [auth, admin], [
   }
 });
 
-// @route   POST /api/orders/custom-hoodie
-// @desc    Créer une commande de hoodie personnalisé
-// @access  Private
-router.post('/custom-hoodie', [auth, [
-  body('couleur').notEmpty().withMessage('Couleur requise'),
-  body('couleurNom').notEmpty().withMessage('Nom de couleur requis'),
-  body('logo').notEmpty().withMessage('Logo requis'),
-  body('logoPosition').notEmpty().withMessage('Position du logo requise'),
-  body('prix').isNumeric().withMessage('Prix invalide'),
-  body('quantite').isInt({ min: 1 }).withMessage('Quantité invalide'),
-  body('taille').notEmpty().withMessage('Taille requise')
-]], async (req, res) => {
+// @route   GET /api/orders/admin/all
+// @desc    Obtenir toutes les commandes (Admin)
+// @access  Private (Admin)
+router.get('/admin/all', [auth, admin], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    
+    // Filtres optionnels
+    const filter = {};
+    if (req.query.statut) filter.statut = req.query.statut;
+    if (req.query.dateDebut) filter.dateCommande = { $gte: new Date(req.query.dateDebut) };
+    if (req.query.dateFin) {
+      filter.dateCommande = { 
+        ...filter.dateCommande, 
+        $lte: new Date(req.query.dateFin) 
+      };
     }
 
-    const { 
-      couleur, 
-      couleurNom, 
-      logo, 
-      logoPosition, 
-      logoSize, 
-      prix, 
-      quantite, 
-      taille, 
-      notes 
-    } = req.body;
+    const orders = await Order.find(filter)
+      .populate('utilisateur', 'nom prenom email')
+      .populate('articles.produit', 'nom images marque')
+      .sort({ dateCommande: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    // Log pour débogage
-    console.log('=== DONNÉES REÇUES POUR COMMANDE PERSONNALISÉE ===');
-    console.log('Couleur:', couleur);
-    console.log('Couleur nom:', couleurNom);
-    console.log('Logo (premiers 100 caractères):', logo ? logo.substring(0, 100) + '...' : 'AUCUN LOGO');
-    console.log('Position logo:', logoPosition);
-    console.log('Taille logo:', logoSize);
-    console.log('Prix:', prix);
-    console.log('Quantité:', quantite);
-    console.log('Taille:', taille);
-    console.log('Notes:', notes);
-    console.log('================================================');
+    const total = await Order.countDocuments(filter);
 
-    // Créer l'article de commande personnalisé
-    const customHoodieArticle = {
-      type: 'custom_hoodie',
-      nom: `Hoodie personnalisé - ${couleurNom}`,
-      quantite: parseInt(quantite),
-      taille: taille,
-      couleur: couleurNom,
-      prixUnitaire: parseFloat(prix),
-      prixTotal: parseFloat(prix) * parseInt(quantite),
-      customData: {
-        logo: logo,
-        logoPosition: logoPosition,
-        logoSize: logoSize || 80,
-        couleurCode: couleur,
-        couleurNom: couleurNom
+    res.json({
+      success: true,
+      orders,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalOrders: total,
+        ordersPerPage: limit
       }
-    };
-
-    // Calculer les totaux
-    const sousTotal = customHoodieArticle.prixTotal;
-    const fraisLivraison = sousTotal > 50 ? 0 : 5.99; // Livraison gratuite au-dessus de 50 TND
-    const total = sousTotal + fraisLivraison;
-
-    // Créer la commande
-    const order = new Order({
-      utilisateur: req.user.id,
-      articles: [customHoodieArticle],
-      adresseLivraison: {
-        nom: req.user.nom || 'Non spécifié',
-        prenom: req.user.prenom || 'Non spécifié',
-        rue: 'À définir',
-        ville: 'À définir',
-        codePostal: 'À définir',
-        pays: 'France',
-        telephone: req.user.telephone || 'Non spécifié'
-      },
-      adresseFacturation: {
-        nom: req.user.nom || 'Non spécifié',
-        prenom: req.user.prenom || 'Non spécifié',
-        rue: 'À définir',
-        ville: 'À définir',
-        codePostal: 'À définir',
-        pays: 'France'
-      },
-      methodePaiement: 'especes', // Par défaut
-      sousTotal,
-      fraisLivraison,
-      total,
-      notes: notes || `Commande de hoodie personnalisé - Couleur: ${couleurNom}, Position logo: ${logoPosition}`,
-      statut: 'en_attente'
-    });
-
-    await order.save();
-
-    // Émettre un événement WebSocket pour les statistiques mises à jour
-    const io = req.app.get('io');
-    if (io && global.emitStatsUpdate) {
-      global.emitStatsUpdate(io);
-    }
-
-    // Log pour vérifier la sauvegarde
-    console.log('=== COMMANDE SAUVEGARDÉE ===');
-    console.log('ID Commande:', order._id);
-    console.log('Logo sauvegardé (premiers 100 caractères):', order.articles[0].customData.logo ? order.articles[0].customData.logo.substring(0, 100) + '...' : 'AUCUN LOGO');
-    console.log('Taille du logo:', order.articles[0].customData.logoSize);
-    console.log('Position du logo:', order.articles[0].customData.logoPosition);
-    console.log('============================');
-
-    // Populer les données utilisateur pour la réponse
-    await order.populate('utilisateur', 'nom prenom email');
-
-    res.status(201).json({
-      message: 'Commande de hoodie personnalisé créée avec succès',
-      order: order
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).send('Erreur serveur');
   }
 });
 
-// @route   GET /api/orders/admin/toutes
-// @desc    Obtenir toutes les commandes (Admin)
+// @route   GET /api/orders/admin/stats
+// @desc    Obtenir les statistiques des commandes (Admin)
 // @access  Private (Admin)
-router.get('/admin/toutes', [auth, admin], async (req, res) => {
+router.get('/admin/stats', [auth, admin], async (req, res) => {
   try {
-    const { page = 1, limit = 20, statut } = req.query;
+    const total = await Order.countDocuments();
+    const enAttente = await Order.countDocuments({ statut: 'en_attente' });
+    const confirmees = await Order.countDocuments({ statut: 'confirmee' });
+    const enPreparation = await Order.countDocuments({ statut: 'en_preparation' });
+    const expediees = await Order.countDocuments({ statut: 'expediee' });
+    const livrees = await Order.countDocuments({ statut: 'livree' });
+    const annulees = await Order.countDocuments({ statut: 'annulee' });
+
+    // Calculer le chiffre d'affaires total
+    const chiffreAffaires = await Order.aggregate([
+      { $group: { _id: null, total: { $sum: '$total' } } }
+    ]);
+
+    res.json({
+      success: true,
+      stats: {
+        total,
+        enAttente,
+        confirmees,
+        enPreparation,
+        expediees,
+        livrees,
+        annulees,
+        chiffreAffaires: chiffreAffaires[0]?.total || 0
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erreur serveur');
+  }
+});
+
+// @route   GET /api/orders/admin/search
+// @desc    Rechercher des commandes (Admin)
+// @access  Private (Admin)
+router.get('/admin/search', [auth, admin], async (req, res) => {
+  try {
+    const { q, page = 1, limit = 10 } = req.query;
     
-    const filtres = {};
-    if (statut) filtres.statut = statut;
+    if (!q) {
+      return res.status(400).json({ message: 'Paramètre de recherche requis' });
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
-    const orders = await Order.find(filtres)
-      .sort({ dateCommande: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .populate('utilisateur', 'nom prenom email');
+    // Recherche dans les commandes
+    const orders = await Order.find({
+      $or: [
+        { numeroCommande: { $regex: q, $options: 'i' } },
+        { 'adresseLivraison.nom': { $regex: q, $options: 'i' } },
+        { 'adresseLivraison.prenom': { $regex: q, $options: 'i' } },
+        { 'adresseLivraison.email': { $regex: q, $options: 'i' } }
+      ]
+    })
+    .populate('utilisateur', 'nom prenom email')
+    .populate('articles.produit', 'nom')
+    .sort({ dateCommande: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
 
-    const total = await Order.countDocuments(filtres);
+    const total = await Order.countDocuments({
+      $or: [
+        { numeroCommande: { $regex: q, $options: 'i' } },
+        { 'adresseLivraison.nom': { $regex: q, $options: 'i' } },
+        { 'adresseLivraison.prenom': { $regex: q, $options: 'i' } },
+        { 'adresseLivraison.email': { $regex: q, $options: 'i' } }
+      ]
+    });
 
     res.json({
-      commandes: orders,
+      success: true,
+      orders,
       pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
         total,
         pages: Math.ceil(total / parseInt(limit))
       }

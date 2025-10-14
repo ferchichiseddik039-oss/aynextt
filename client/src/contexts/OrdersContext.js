@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../config/axios';
+import { useSocket } from './SocketContext';
+import { toast } from 'react-toastify';
 
 const OrdersContext = createContext();
 
@@ -15,6 +17,7 @@ export const OrdersProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { socket, isConnected } = useSocket();
 
   // Fonction pour récupérer les commandes de l'utilisateur
   const fetchOrders = useCallback(async () => {
@@ -38,7 +41,7 @@ export const OrdersProvider = ({ children }) => {
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes max
       
       try {
-        const response = await fetch('/api/orders', {
+        const response = await fetch('http://localhost:5001/api/orders', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -65,9 +68,15 @@ export const OrdersProvider = ({ children }) => {
         }
         
         const data = await response.json();
-        console.log(`✅ ${data.length} commande(s) récupérée(s)`);
         console.log('📋 Données reçues:', data);
-        setOrders(data);
+        
+        if (data.success && data.orders) {
+          console.log(`✅ ${data.orders.length} commande(s) récupérée(s)`);
+          setOrders(data.orders);
+        } else {
+          console.log('❌ Format de réponse incorrect');
+          setOrders([]);
+        }
         
       } catch (fetchError) {
         clearTimeout(timeoutId);
@@ -105,18 +114,24 @@ export const OrdersProvider = ({ children }) => {
 
   // Fonction pour ajouter une nouvelle commande
   const addOrder = (newOrder) => {
-    setOrders(prevOrders => [newOrder, ...prevOrders]);
+    setOrders(prevOrders => {
+      // S'assurer que prevOrders est un tableau
+      const ordersArray = Array.isArray(prevOrders) ? prevOrders : [];
+      return [newOrder, ...ordersArray];
+    });
   };
 
   // Fonction pour mettre à jour le statut d'une commande
   const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(prevOrders => 
-      prevOrders.map(order => 
+    setOrders(prevOrders => {
+      // S'assurer que prevOrders est un tableau
+      const ordersArray = Array.isArray(prevOrders) ? prevOrders : [];
+      return ordersArray.map(order => 
         order._id === orderId 
           ? { ...order, statut: newStatus }
           : order
-      )
-    );
+      );
+    });
   };
 
   // Fonction pour obtenir le nombre de commandes
@@ -134,6 +149,118 @@ export const OrdersProvider = ({ children }) => {
     console.log('🔄 OrdersContext - Chargement initial des commandes');
     fetchOrders();
   }, []); // Retiré fetchOrders des dépendances
+
+  // Écouter les événements WebSocket pour les mises à jour en temps réel
+  useEffect(() => {
+    if (!socket || !isConnected) {
+      console.log('🔌 WebSocket non connecté dans OrdersContext');
+      return;
+    }
+
+    console.log('✅ WebSocket connecté - Configuration des écouteurs pour les commandes');
+
+    // Écouter les mises à jour de statut de commande
+    const handleOrderStatusUpdate = (data) => {
+      console.log('📦 Mise à jour de commande reçue via WebSocket:', data);
+      console.log('📦 Type de data.orderId:', typeof data.orderId, data.orderId);
+      
+      if (data && data.orderId && data.newStatus) {
+        // Convertir les IDs en string pour une comparaison fiable
+        const eventOrderId = String(data.orderId);
+        let updated = false;
+        
+        // Mettre à jour le statut de la commande dans l'état local
+        setOrders(prevOrders => {
+          console.log('📋 Commandes actuelles:', prevOrders?.length || 0);
+          
+          const ordersArray = Array.isArray(prevOrders) ? prevOrders : [];
+          const newOrders = ordersArray.map(order => {
+            const orderIdStr = String(order._id);
+            console.log(`🔍 Comparaison: ${orderIdStr} === ${eventOrderId} ?`, orderIdStr === eventOrderId);
+            
+            if (orderIdStr === eventOrderId) {
+              console.log(`✅ MATCH! Mise à jour du statut: ${order.statut} → ${data.newStatus}`);
+              updated = true;
+              return {
+                ...order,
+                statut: data.newStatus
+              };
+            }
+            return order;
+          });
+          
+          if (!updated) {
+            console.warn(`⚠️ Aucune commande trouvée avec l'ID ${eventOrderId}`);
+            console.log('📋 IDs disponibles:', ordersArray.map(o => String(o._id)));
+          }
+          
+          return newOrders;
+        });
+
+        // Afficher une notification à l'utilisateur
+        const statusLabels = {
+          'en_attente': 'En attente',
+          'confirmee': 'Confirmée',
+          'en_preparation': 'En préparation',
+          'expediee': 'Expédiée',
+          'livree': 'Livrée',
+          'annulee': 'Annulée'
+        };
+        
+        const statusLabel = statusLabels[data.newStatus] || data.newStatus;
+        const orderId = String(data.orderId);
+        toast.info(`📦 Commande #${orderId.slice(-8)} : ${statusLabel}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+      } else {
+        console.warn('⚠️ Données WebSocket incomplètes:', data);
+      }
+    };
+
+    // Écouter l'événement de nouvelle commande (pour les admins ou pour synchroniser)
+    const handleNewOrder = (data) => {
+      console.log('🆕 Nouvelle commande reçue via WebSocket:', data);
+      
+      if (data && data.order) {
+        const newOrderId = String(data.order._id);
+        
+        // Ajouter la nouvelle commande si elle n'existe pas déjà
+        setOrders(prevOrders => {
+          const ordersArray = Array.isArray(prevOrders) ? prevOrders : [];
+          const exists = ordersArray.some(order => String(order._id) === newOrderId);
+          
+          if (!exists) {
+            console.log('✅ Ajout de la nouvelle commande à la liste:', newOrderId);
+            return [data.order, ...ordersArray];
+          } else {
+            console.log('⚠️ La commande existe déjà:', newOrderId);
+          }
+          
+          return ordersArray;
+        });
+      } else {
+        console.warn('⚠️ Données de nouvelle commande incomplètes:', data);
+      }
+    };
+
+    // S'abonner aux événements
+    socket.on('order-status-updated', handleOrderStatusUpdate);
+    socket.on('new-order', handleNewOrder);
+
+    console.log('📡 Écouteurs WebSocket configurés pour les commandes');
+
+    // Nettoyer les écouteurs lors du démontage
+    return () => {
+      console.log('🧹 Nettoyage des écouteurs WebSocket des commandes');
+      socket.off('order-status-updated', handleOrderStatusUpdate);
+      socket.off('new-order', handleNewOrder);
+    };
+  }, [socket, isConnected]);
 
   const value = {
     orders,

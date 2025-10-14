@@ -15,7 +15,9 @@ router.post('/inscription', [
   body('nom').notEmpty().withMessage('Le nom est requis'),
   body('prenom').notEmpty().withMessage('Le prénom est requis'),
   body('email').isEmail().withMessage('Email invalide'),
-  body('motDePasse').isLength({ min: 6 }).withMessage('Le mot de passe doit contenir au moins 6 caractères')
+  body('motDePasse')
+    .isLength({ min: 8 }).withMessage('Le mot de passe doit contenir au moins 8 caractères')
+    .matches(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -49,6 +51,25 @@ router.post('/inscription', [
       global.emitStatsUpdate(io);
     }
 
+    // Envoyer un email de bienvenue au nouvel utilisateur
+    try {
+      console.log('📧 Tentative d\'envoi de l\'email de bienvenue à:', user.email);
+      emailService.sendWelcomeEmail(user)
+        .then(result => {
+          if (result.success) {
+            console.log('✅ Email de bienvenue envoyé avec succès à:', user.email);
+          } else {
+            console.log('⚠️ Email de bienvenue non envoyé:', result.error);
+          }
+        })
+        .catch(emailError => {
+          console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', emailError.message);
+        });
+    } catch (emailError) {
+      console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', emailError.message);
+      // Ne pas bloquer l'inscription si l'email échoue
+    }
+
     // Créer le token JWT
     const payload = {
       user: {
@@ -64,14 +85,15 @@ router.post('/inscription', [
       (err, token) => {
         if (err) throw err;
         res.json({
+          success: true,
           token,
           user: user.toPublicJSON()
         });
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Erreur serveur');
+    console.error('❌ Erreur inscription:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur lors de l\'inscription' });
   }
 });
 
@@ -128,14 +150,15 @@ router.post('/connexion', [
       (err, token) => {
         if (err) throw err;
         res.json({
+          success: true,
           token,
           user: user.toPublicJSON()
         });
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Erreur serveur');
+    console.error('❌ Erreur connexion:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur lors de la connexion' });
   }
 });
 
@@ -192,14 +215,15 @@ router.post('/connexion-admin', [
       (err, token) => {
         if (err) throw err;
         res.json({
+          success: true,
           token,
           user: user.toPublicJSON()
         });
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Erreur serveur');
+    console.error('❌ Erreur connexion admin:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur lors de la connexion administrateur' });
   }
 });
 
@@ -225,8 +249,8 @@ router.post('/check-user-role', [
 
     res.json({ role: user.role });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Erreur serveur');
+    console.error('❌ Erreur check-user-role:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur lors de la vérification du rôle' });
   }
 });
 
@@ -236,10 +260,10 @@ router.post('/check-user-role', [
 router.get('/utilisateur', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-motDePasse');
-    res.json(user);
+    res.json({ success: true, user });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erreur serveur');
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
 
@@ -250,7 +274,10 @@ router.get('/google', (req, res, next) => {
       message: 'Google OAuth non configuré. Veuillez configurer les variables d\'environnement GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET.' 
     });
   }
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    prompt: 'select_account' // Force la sélection du compte à chaque fois
+  })(req, res, next);
 });
 
 router.get('/google/callback', 

@@ -52,7 +52,7 @@ const CustomHoodieDesigner = ({ product, onAddToCart, onClose }) => {
   const loadCustomizationOptions = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/products/${product._id}/options-personnalisation`);
+      const response = await api.get(`/products/${product._id}/options-personnalisation`);
       setCustomizationOptions(response.data);
       
       // Sélectionner les premières options par défaut
@@ -81,7 +81,7 @@ const CustomHoodieDesigner = ({ product, onAddToCart, onClose }) => {
 
     try {
       setPreviewLoading(true);
-      const response = await api.post(`/api/products/${product._id}/preview-personnalise`, {
+      const response = await api.post(`/products/${product._id}/preview-personnalise`, {
         couleur: selectedColor.nom,
         logo: selectedLogo.nom,
         position: selectedPosition.nom

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaHeart, FaShare, FaStar, FaShoppingCart, FaTruck, FaShieldAlt, FaUndo } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatBrand, formatCategory } from '../utils/formatUtils';
+import api from '../config/axios';
 import '../styles/ProductDetail.css';
 
 const ProductDetail = () => {
@@ -23,15 +24,16 @@ const ProductDetail = () => {
 
   useEffect(() => {
     fetchProduct();
-  }, [id]);
+  }, [id, navigate]);
 
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/products/${id}`);
-      const data = await response.json();
+      const response = await api.get(`/products/${id}`);
+      const data = response.data;
       
-      if (response.ok) {
+      // La route backend retourne directement l'objet produit
+      if (data && data._id) {
         setProduct(data);
         // Charger les produits similaires
         fetchRelatedProducts(data.categorie, data.marque);
@@ -40,24 +42,28 @@ const ProductDetail = () => {
         navigate('/products');
       }
     } catch (error) {
+      console.error('Erreur lors du chargement du produit:', error);
       toast.error('Erreur lors du chargement du produit');
       navigate('/products');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
-  const fetchRelatedProducts = async (category, brand) => {
+  const fetchRelatedProducts = useCallback(async (category, brand) => {
     try {
-      const response = await fetch(`/api/products?category=${category}&brand=${brand}&limit=4`);
-      const data = await response.json();
-      if (response.ok) {
-        setRelatedProducts(data.products.filter(p => p._id !== id));
+      const response = await api.get(`/products?categorie=${category}&marque=${brand}&limit=4`);
+      const data = response.data;
+      // La route backend retourne directement un tableau de produits
+      if (Array.isArray(data)) {
+        setRelatedProducts(data.filter(p => p._id !== id));
+      } else if (data.products || data.produits) {
+        setRelatedProducts((data.products || data.produits || []).filter(p => p._id !== id));
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des produits similaires');
+      console.error('Erreur lors du chargement des produits similaires:', error);
     }
-  };
+  }, [id]);
 
   const handleAddToCart = async () => {
     if (!user) {

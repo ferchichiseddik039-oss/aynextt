@@ -100,12 +100,17 @@ router.put('/modifier/:articleId', [auth, [
       return res.status(404).json({ message: 'Article non trouvé' });
     }
 
-    // Vérifier la disponibilité
-    const produit = await Product.findById(article.produit);
-    const tailleDisponible = produit.tailles.find(t => t.nom === article.taille);
-    if (!tailleDisponible || tailleDisponible.stock < quantite) {
-      return res.status(400).json({ message: 'Stock insuffisant' });
+    // Vérifier la disponibilité seulement pour les articles standard
+    if (article.type === 'standard' && article.produit) {
+      const produit = await Product.findById(article.produit);
+      if (produit) {
+        const tailleDisponible = produit.tailles.find(t => t.nom === article.taille);
+        if (!tailleDisponible || tailleDisponible.stock < quantite) {
+          return res.status(400).json({ message: 'Stock insuffisant' });
+        }
+      }
     }
+    // Pour les articles personnalisés, pas de vérification de stock
 
     article.quantite = quantite;
     cart.dateModification = new Date();

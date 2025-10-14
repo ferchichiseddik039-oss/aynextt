@@ -104,12 +104,67 @@ const Admin = () => {
       toast.info(`Statistiques mises à jour: ${data.totalProducts} produits`, { autoClose: 2000 });
     });
 
+    // Événement pour les mises à jour de statut des commandes
+    socket.on('order-status-updated', (data) => {
+      console.log('🔄 Statut de commande mis à jour via WebSocket:', data);
+      // Mettre à jour la liste des commandes
+      setOrders(prev => prev.map(order => 
+        order._id === data.orderId ? { ...order, statut: data.newStatus } : order
+      ));
+      
+      // Mettre à jour les statistiques si nécessaire
+      if (data.type === 'order_status_updated') {
+        console.log('📊 Mise à jour des statistiques pour commande:', data.orderId);
+      }
+    });
+
+    // Événement spécifique aux admins pour les mises à jour de commandes
+    socket.on('admin-order-updated', (data) => {
+      console.log('🔄 Commande mise à jour (admin) via WebSocket:', data);
+      // Mettre à jour la liste des commandes avec plus de détails
+      setOrders(prev => prev.map(order => 
+        order._id === data.orderId ? { ...order, ...data.order } : order
+      ));
+      
+      // Afficher une notification
+      toast.info(`Commande #${data.orderId.slice(-6)} mise à jour: ${data.newStatus}`);
+    });
+
+    // Événement pour les nouvelles commandes
+    socket.on('admin-new-order', (data) => {
+      console.log('🆕 Nouvelle commande reçue (admin) via WebSocket:', data);
+      // Ajouter la nouvelle commande au début de la liste
+      setOrders(prev => {
+        // Vérifier si la commande n'existe pas déjà
+        const exists = prev.some(order => order._id === data.order._id);
+        if (!exists) {
+          return [data.order, ...prev];
+        }
+        return prev;
+      });
+      
+      // Mettre à jour les statistiques
+      setStats(prevStats => ({
+        ...prevStats,
+        totalOrders: (prevStats.totalOrders || 0) + 1
+      }));
+      
+      // Afficher une notification
+      toast.success(`🆕 Nouvelle commande reçue! Total: ${(data.order.total || 0).toFixed(2)} TND`, {
+        position: "top-right",
+        autoClose: 5000
+      });
+    });
+
     // Cleanup
     return () => {
       socket.off('product-deleted');
       socket.off('product-added');
       socket.off('product-updated');
       socket.off('stats-updated');
+      socket.off('order-status-updated');
+      socket.off('admin-order-updated');
+      socket.off('admin-new-order');
     };
   }, [socket, isConnected]);
 
@@ -142,17 +197,24 @@ const Admin = () => {
       setLoading(true);
       
       // Charger les statistiques
-      const statsResponse = await fetch('/api/admin/stats', {
-        headers: {
-          'x-auth-token': localStorage.getItem('token')
-        }
-      });
+      const statsResponse = await api.get('/admin/stats');
       
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
-        console.log('📊 Statistiques initiales chargées:', statsData);
-        console.log('📦 Nombre de produits initial:', statsData.totalProducts);
-        setStats(statsData);
+      // L'API retourne un format {success: true, stats: {...}}
+      const statsData = statsResponse.data;
+      console.log('📊 Statistiques initiales chargées:', statsData);
+      
+      if (statsData.success && statsData.stats) {
+        // Convertir totalRevenue en chiffreAffaires pour la compatibilité
+        const formattedStats = {
+          ...statsData.stats,
+          chiffreAffaires: statsData.stats.totalRevenue || 0
+        };
+        console.log('📦 Nombre de produits initial:', formattedStats?.totalProducts);
+        console.log('💰 Chiffre d\'affaires:', formattedStats?.chiffreAffaires);
+        setStats(formattedStats);
+      } else {
+        console.log('❌ Format de réponse inattendu:', statsData);
+        setStats({});
       }
 
       // Charger les produits
@@ -204,14 +266,10 @@ const Admin = () => {
       if (search) params.append('recherche', search);
       if (role) params.append('role', role);
 
-      const response = await fetch(`/api/users/admin/tous?${params}`, {
-        headers: {
-          'x-auth-token': localStorage.getItem('token')
-        }
-      });
+      const response = await api.get(`/users/admin/tous?${params}`);
       
-      if (response.ok) {
-        const data = await response.json();
+      if (response.data.success) {
+        const data = response.data;
         setUsers(data.utilisateurs);
         setUsersPagination(data.pagination);
       } else {
@@ -226,7 +284,28 @@ const Admin = () => {
     try {
       setLoading(true);
       const response = await api.get('/orders/admin/toutes');
-      setOrders(response.data.commandes || response.data.orders || []);
+      const orders = response.data.commandes || response.data.orders || [];
+      console.log('🔍 Orders fetched:', orders);
+      console.log('🔍 Number of orders:', orders.length);
+      
+      if (orders.length > 0) {
+        console.log('🔍 First order structure:', orders[0]);
+        console.log('🔍 First order _id:', orders[0]?._id);
+        console.log('🔍 First order id:', orders[0]?.id);
+        console.log('🔍 First order keys:', Object.keys(orders[0]));
+        console.log('🔍 First order values:', Object.values(orders[0]));
+        
+        // Vérifier si l'ID existe
+        const firstOrderId = getOrderId(orders[0]);
+        console.log('🔍 First order ID found:', firstOrderId);
+        
+        if (!firstOrderId) {
+          console.error('❌ First order has no valid ID!');
+          console.error('❌ First order object:', JSON.stringify(orders[0], null, 2));
+        }
+      }
+      
+      setOrders(orders);
     } catch (error) {
       console.error('Erreur lors du chargement des commandes:', error);
       toast.error('Erreur lors du chargement des commandes');
@@ -266,6 +345,19 @@ const Admin = () => {
       </div>
     );
   }
+
+  // Fonction utilitaire pour obtenir l'ID d'une commande
+  const getOrderId = (order) => {
+    if (!order) return null;
+    const possibleIds = [order._id, order.id, order.orderId, order.order_id, order.commandeId, order.commande_id];
+    return possibleIds.find(id => id && id !== 'undefined' && id !== 'null');
+  };
+
+  // Fonction utilitaire pour obtenir l'ID tronqué d'une commande
+  const getOrderIdShort = (order, length = 6) => {
+    const orderId = getOrderId(order);
+    return orderId ? orderId.slice(-length) : 'N/A';
+  };
 
   return (
     <div className="admin-page">
@@ -404,6 +496,19 @@ const Admin = () => {
 // Onglet Tableau de bord moderne
 const DashboardTab = ({ stats, onRefresh }) => {
   console.log('🎯 DashboardTab - Stats reçues:', stats);
+  
+  // Fonction utilitaire pour obtenir l'ID d'une commande
+  const getOrderId = (order) => {
+    if (!order) return null;
+    const possibleIds = [order._id, order.id, order.orderId, order.order_id, order.commandeId, order.commande_id];
+    return possibleIds.find(id => id && id !== 'undefined' && id !== 'null');
+  };
+
+  // Fonction utilitaire pour obtenir l'ID tronqué d'une commande
+  const getOrderIdShort = (order, length = 6) => {
+    const orderId = getOrderId(order);
+    return orderId ? orderId.slice(-length) : 'N/A';
+  };
   
   // Fonction pour calculer la tendance
   const getTrend = (value, type) => {
@@ -565,7 +670,7 @@ const DashboardTab = ({ stats, onRefresh }) => {
                   </div>
                   <div className="modern-order-details">
                     <h4>
-                      Commande #{order._id?.slice(-8)}
+                      Commande #{getOrderIdShort(order, 8)}
                     </h4>
                     <p>
                       {order.utilisateur?.prenom} {order.utilisateur?.nom}
@@ -615,7 +720,7 @@ const ProductsTab = ({ products, onProductAdded }) => {
       console.log('Utilisateur actuel:', user);
       console.log('Token:', localStorage.getItem('token'));
       
-      await api.delete(`/api/products/${productId}`);
+      await api.delete(`/products/${productId}`);
       
       // La mise à jour sera gérée par WebSocket
       toast.success('Produit supprimé avec succès');
@@ -891,6 +996,21 @@ const OrdersTab = ({ orders, onOrdersUpdate }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleViewOrder = (order) => {
+    console.log('🔍 Order object passed to handleViewOrder:', order);
+    console.log('🔍 Full order object:', JSON.stringify(order, null, 2));
+    console.log('🔍 Order _id:', order._id);
+    console.log('🔍 Order id:', order.id);
+    console.log('🔍 Object keys:', Object.keys(order));
+    
+    const orderId = getOrderId(order);
+    
+    if (!order || !orderId) {
+      console.error('❌ Order object is invalid or missing ID:', order);
+      toast.error('Erreur: Commande invalide');
+      return;
+    }
+    
+    console.log('✅ Valid order found with ID:', orderId);
     setSelectedOrder(order);
     setShowOrderDetails(true);
   };
@@ -898,6 +1018,19 @@ const OrdersTab = ({ orders, onOrdersUpdate }) => {
   const getOrderTypeIcon = (order) => {
     const hasCustomHoodie = order.articles?.some(article => article.type === 'custom_hoodie');
     return hasCustomHoodie ? '🎨' : '📦';
+  };
+
+  // Fonction utilitaire pour obtenir l'ID d'une commande
+  const getOrderId = (order) => {
+    if (!order) return null;
+    const possibleIds = [order._id, order.id, order.orderId, order.order_id, order.commandeId, order.commande_id];
+    return possibleIds.find(id => id && id !== 'undefined' && id !== 'null');
+  };
+
+  // Fonction utilitaire pour obtenir l'ID tronqué d'une commande
+  const getOrderIdShort = (order, length = 6) => {
+    const orderId = getOrderId(order);
+    return orderId ? orderId.slice(-length) : 'N/A';
   };
 
   const getOrderTypeLabel = (order) => {
@@ -1031,7 +1164,7 @@ const OrdersTab = ({ orders, onOrdersUpdate }) => {
                   <div className="order-info-row">
                     <div className="order-info-item">
                       <span className="info-label">N° Commande</span>
-                      <span className="info-value">#{order._id?.slice(-8) || 'N/A'}</span>
+                      <span className="info-value">#{getOrderIdShort(order, 8)}</span>
                     </div>
                     <div className="order-info-item">
                       <span className="info-label">Client</span>
@@ -1372,20 +1505,18 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
         formData.append('images', file);
       });
 
-      const response = await fetch('/api/upload/product-images', {
-        method: 'POST',
+      const response = await api.post('/upload/product-images', formData, {
         headers: {
+          'Content-Type': 'multipart/form-data',
           'x-auth-token': localStorage.getItem('token')
-        },
-        body: formData
+        }
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      if (response.data.success) {
+        const result = response.data;
         uploadedImages.push(...result.images.map(img => img.url));
       } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Erreur lors du chargement des images');
+        throw new Error(response.data.message || 'Erreur lors du chargement des images');
       }
     } catch (error) {
       console.error('Erreur upload images:', error);
@@ -1444,8 +1575,8 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
 
       const response = await api.post('/products', productData);
 
-      if (response.status === 201) {
-        const newProduct = response.data;
+      if (response.data.success) {
+        const newProduct = response.data.product;
         onProductAdded(newProduct);
         // Reset form
         setFormData({
@@ -1474,11 +1605,12 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
         setImages([]);
         setImageFiles([]);
       } else {
-        const error = await response.json();
-        setErrors({ submit: error.message || 'Erreur lors de l\'ajout du produit' });
+        console.error('Erreur lors de la création du produit:', response.data);
+        setErrors({ submit: response.data.message || 'Erreur lors de l\'ajout du produit' });
       }
     } catch (error) {
-      setErrors({ submit: 'Erreur de connexion' });
+      console.error('Erreur lors de la création du produit:', error);
+      setErrors({ submit: error.message || 'Erreur de connexion' });
     } finally {
       setLoading(false);
     }
@@ -1802,14 +1934,64 @@ const OrderDetailsModal = ({ order, onClose, onStatusUpdate }) => {
   
   if (!order) return null;
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  // Fonction utilitaire pour obtenir l'ID d'une commande
+  const getOrderId = (order) => {
+    if (!order) {
+      console.log('🔍 getOrderId: order is null/undefined');
+      return null;
+    }
+    
+    const possibleIds = [
+      order._id, 
+      order.id, 
+      order.orderId, 
+      order.order_id, 
+      order.commandeId, 
+      order.commande_id,
+      order['_id'],
+      order['id'],
+      order['orderId'],
+      order['order_id'],
+      order['commandeId'],
+      order['commande_id']
+    ];
+    
+    console.log('🔍 getOrderId: checking possible IDs:', possibleIds);
+    
+    const validId = possibleIds.find(id => {
+      const isValid = id && id !== 'undefined' && id !== 'null' && id !== '' && id !== 0;
+      console.log(`🔍 getOrderId: checking ${id} -> ${isValid}`);
+      return isValid;
     });
+    
+    console.log('🔍 getOrderId: found valid ID:', validId);
+    return validId;
+  };
+
+  // Fonction utilitaire pour obtenir l'ID tronqué d'une commande
+  const getOrderIdShort = (order, length = 6) => {
+    const orderId = getOrderId(order);
+    return orderId ? orderId.slice(-length) : 'N/A';
+  };
+
+  const formatDate = (date) => {
+    if (!date) return 'N/A';
+    try {
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        return 'Date invalide';
+      }
+      return dateObj.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Erreur formatage date:', error);
+      return 'Date invalide';
+    }
   };
 
   const downloadLogo = (logoData, filename) => {
@@ -1903,9 +2085,80 @@ const OrderDetailsModal = ({ order, onClose, onStatusUpdate }) => {
   const handleStatusUpdate = async (newStatus) => {
     if (isUpdatingStatus) return;
     
+    console.log('🔍 handleStatusUpdate called with:', { newStatus, order });
+    console.log('🔍 Full order object:', JSON.stringify(order, null, 2));
+    console.log('🔍 order._id:', order._id);
+    console.log('🔍 order.id:', order.id);
+    console.log('🔍 Object keys:', Object.keys(order));
+    console.log('🔍 Object values:', Object.values(order));
+    console.log('🔍 Order type:', typeof order);
+    console.log('🔍 Order constructor:', order.constructor.name);
+    
+    // Vérifier toutes les propriétés possibles
+    const allProps = Object.getOwnPropertyNames(order);
+    console.log('🔍 All properties:', allProps);
+    
+    const orderId = getOrderId(order);
+    console.log('🔍 getOrderId result:', orderId);
+    
+    if (!orderId) {
+      console.error('❌ No valid order ID found!');
+      console.error('❌ Order object structure:', {
+        _id: order._id,
+        id: order.id,
+        orderId: order.orderId,
+        order_id: order.order_id,
+        commandeId: order.commandeId,
+        commande_id: order.commande_id,
+        allKeys: Object.keys(order)
+      });
+      
+      // Solution de contournement temporaire
+      console.log('🔧 Tentative de solution de contournement...');
+      
+      // Solution de contournement temporaire - essayer de créer un ID basé sur les données disponibles
+      console.log('🔧 Tentative de création d\'un ID temporaire...');
+      
+      // Essayer de créer un ID basé sur les données disponibles
+      let tempId = null;
+      if (order.utilisateur?.email) {
+        tempId = `temp_${order.utilisateur.email}_${Date.now()}`;
+      } else if (order.dateCommande) {
+        tempId = `temp_${new Date(order.dateCommande).getTime()}`;
+      } else {
+        tempId = `temp_${Date.now()}`;
+      }
+      
+      console.log('🔧 Utilisation d\'un ID temporaire:', tempId);
+      toast.warning('Utilisation d\'un ID temporaire pour cette commande');
+      
+      // Continuer avec l'ID temporaire
+      setIsUpdatingStatus(true);
+      try {
+        const response = await api.put(`/orders/${tempId}/statut`, {
+          statut: newStatus
+        });
+        
+        if (response.data) {
+          toast.success(`Statut mis à jour: ${getStatusLabel(newStatus)}`);
+          if (onStatusUpdate) {
+            onStatusUpdate(response.data);
+          }
+          setShowStatusButtons(false);
+        }
+      } catch (error) {
+        console.error('Erreur avec ID temporaire:', error);
+        toast.error('Erreur lors de la mise à jour du statut');
+      } finally {
+        setIsUpdatingStatus(false);
+      }
+      return;
+    }
+    
     setIsUpdatingStatus(true);
     try {
-      const response = await api.put(`/api/orders/${order._id}/statut`, {
+      console.log('🔍 Using order ID:', orderId);
+      const response = await api.put(`/orders/${orderId}/statut`, {
         statut: newStatus
       });
       
@@ -1942,7 +2195,7 @@ const OrderDetailsModal = ({ order, onClose, onStatusUpdate }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Détails de la commande #{order._id?.slice(-6)}</h3>
+          <h3>Détails de la commande #{getOrderIdShort(order, 6)}</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
 
@@ -2215,7 +2468,7 @@ const OrderDetailsModal = ({ order, onClose, onStatusUpdate }) => {
                                   <span>Logo non disponible</span>
                                 </div>
                                 <button
-                                  onClick={() => downloadLogo(article.customData.logo, `logo-${order._id.slice(-6)}.png`)}
+                                  onClick={() => downloadLogo(article.customData.logo, `logo-${getOrderIdShort(order, 6)}.png`)}
                                   style={{
                                     background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
                                     color: 'white',
@@ -2535,7 +2788,7 @@ const EditProductForm = ({ product, onClose, onProductUpdated }) => {
 
       console.log('Mise à jour du produit:', product._id, submitData);
       
-      const response = await api.put(`/api/products/${product._id}`, submitData);
+      const response = await api.put(`/products/${product._id}`, submitData);
       
       if (response.status === 200) {
         console.log('Produit mis à jour avec succès:', response.data);
@@ -2891,18 +3144,41 @@ const UserDetailsModal = ({ user, onClose }) => {
   // Fonction pour récupérer les statistiques de l'utilisateur
   const fetchUserStats = async () => {
     try {
+      console.log('🔍 Récupération des statistiques pour l\'utilisateur:', user._id);
       setUserStats(prev => ({ ...prev, loading: true }));
       
-      const response = await api.get(`/api/users/admin/${user._id}/stats`);
+      const response = await api.get(`/users/admin/${user._id}/stats`);
+      console.log('📊 Réponse API stats:', response.data);
       
+      // Vérifier que les données existent avant de les utiliser
+      if (response.data && response.data.statistiques) {
+        console.log('✅ Statistiques trouvées:', {
+          nombreCommandes: response.data.statistiques.nombreCommandes,
+          totalDepense: response.data.statistiques.totalDepense
+        });
+        setUserStats({
+          nombreCommandes: response.data.statistiques.nombreCommandes || 0,
+          totalDepense: response.data.statistiques.totalDepense || 0,
+          loading: false
+        });
+      } else {
+        console.warn('⚠️ Format de données inattendu:', response.data);
+        // Si les données ne sont pas dans le format attendu
+        setUserStats({
+          nombreCommandes: 0,
+          totalDepense: 0,
+          loading: false
+        });
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des statistiques utilisateur:', error);
+      console.error('❌ Détails de l\'erreur:', error.response?.data);
+      // En cas d'erreur, réinitialiser avec des valeurs par défaut
       setUserStats({
-        nombreCommandes: response.data.statistiques.nombreCommandes,
-        totalDepense: response.data.statistiques.totalDepense,
+        nombreCommandes: 0,
+        totalDepense: 0,
         loading: false
       });
-    } catch (error) {
-      console.error('Erreur lors du chargement des statistiques utilisateur:', error);
-      setUserStats(prev => ({ ...prev, loading: false }));
     }
   };
 

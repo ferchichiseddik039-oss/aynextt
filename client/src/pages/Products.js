@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaSearch, FaFilter, FaSort, FaHeart, FaShoppingCart, FaPalette } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -140,21 +140,42 @@ const Products = () => {
     }
   }, [location.search]);
 
-
-  useEffect(() => {
-    // Charger les produits en priorité
-    fetchProducts();
-    
-    // Charger les catégories et marques seulement si pas encore chargées
-    if (categories.length === 0) {
-      fetchCategories();
+  // Déclarer les fonctions avec useCallback AVANT de les utiliser dans useEffect
+  const fetchCategories = useCallback(async () => {
+    try {
+      // Utiliser des catégories statiques pour simplifier
+      const staticCategories = [
+        { _id: '1', nom: 'Hoodies', code: 'hoodies' },
+        { _id: '2', nom: 'T-Shirts', code: 't-shirts' },
+        { _id: '3', nom: 'Sweats', code: 'sweats' },
+        { _id: '4', nom: 'Pantalons', code: 'pantalons' },
+        { _id: '5', nom: 'Accessoires', code: 'accessoires' }
+      ];
+      setCategories(staticCategories);
+    } catch (error) {
+      console.log('Erreur chargement catégories');
+      setCategories([]);
     }
-    if (brands.length === 0) {
-      fetchBrands();
-    }
-  }, [filters, sortBy, searchTerm, currentPage]);
+  }, []);
 
-  const fetchProducts = async () => {
+  const fetchBrands = useCallback(async () => {
+    try {
+      // Utiliser des marques statiques pour simplifier
+      const staticBrands = [
+        { _id: '1', nom: 'Premium', code: 'premium' },
+        { _id: '2', nom: 'Basique', code: 'basique' },
+        { _id: '3', nom: 'Comfort', code: 'comfort' },
+        { _id: '4', nom: 'Style', code: 'style' },
+        { _id: '5', nom: 'Sport', code: 'sport' }
+      ];
+      setBrands(staticBrands);
+    } catch (error) {
+      console.log('Erreur chargement marques');
+      setBrands([]);
+    }
+  }, []);
+
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -187,24 +208,31 @@ const Products = () => {
       clearTimeout(timeoutId);
       const data = response.data;
       
-      const produits = data.products || [];
+      const produits = data.products || data.produits || [];
       debugObjects(produits, 'Products - fetchProducts');
+      
+      console.log('🔍 Produits reçus du serveur:', produits.length);
+      console.log('🔍 Structure des données:', data);
       
       // Filtrer les produits pour ne garder que ceux qui sont disponibles (en stock)
       const produitsDisponibles = produits.filter(product => {
+        console.log('🔍 Vérification produit:', product.nom, 'tailles:', product.tailles);
         // Vérifier si le produit a des tailles avec du stock
         if (product.tailles && Array.isArray(product.tailles)) {
-          return product.tailles.some(taille => taille.stock > 0);
+          const hasStock = product.tailles.some(taille => taille.stock > 0);
+          console.log('🔍 Produit', product.nom, 'a du stock:', hasStock);
+          return hasStock;
         }
         // Si pas de tailles définies, considérer comme disponible
+        console.log('🔍 Produit', product.nom, 'sans tailles définies, considéré comme disponible');
         return true;
       });
       
-      console.log('Produits reçus:', produits.length);
-      console.log('Produits disponibles après filtrage:', produitsDisponibles.length);
+      console.log('✅ Produits reçus:', produits.length);
+      console.log('✅ Produits disponibles après filtrage:', produitsDisponibles.length);
       
       setProducts(produitsDisponibles);
-      setTotalPages(data.totalPages || 1);
+      setTotalPages(data.pagination?.pages || data.totalPages || 1);
     } catch (error) {
       if (error.name === 'AbortError') {
         console.log('Timeout: Le serveur met trop de temps à répondre');
@@ -220,41 +248,20 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, sortBy, filters, searchTerm]);
 
-  const fetchCategories = async () => {
-    try {
-      // Utiliser des catégories statiques pour simplifier
-      const staticCategories = [
-        { _id: '1', nom: 'Hoodies', code: 'hoodies' },
-        { _id: '2', nom: 'T-Shirts', code: 't-shirts' },
-        { _id: '3', nom: 'Sweats', code: 'sweats' },
-        { _id: '4', nom: 'Pantalons', code: 'pantalons' },
-        { _id: '5', nom: 'Accessoires', code: 'accessoires' }
-      ];
-      setCategories(staticCategories);
-    } catch (error) {
-      console.log('Erreur chargement catégories');
-      setCategories([]);
+  useEffect(() => {
+    // Charger les produits en priorité
+    fetchProducts();
+    
+    // Charger les catégories et marques seulement si pas encore chargées
+    if (categories.length === 0) {
+      fetchCategories();
     }
-  };
-
-  const fetchBrands = async () => {
-    try {
-      // Utiliser des marques statiques pour simplifier
-      const staticBrands = [
-        { _id: '1', nom: 'Premium', code: 'premium' },
-        { _id: '2', nom: 'Basique', code: 'basique' },
-        { _id: '3', nom: 'Comfort', code: 'comfort' },
-        { _id: '4', nom: 'Style', code: 'style' },
-        { _id: '5', nom: 'Sport', code: 'sport' }
-      ];
-      setBrands(staticBrands);
-    } catch (error) {
-      console.log('Erreur chargement marques');
-      setBrands([]);
+    if (brands.length === 0) {
+      fetchBrands();
     }
-  };
+  }, [filters, sortBy, searchTerm, currentPage, fetchProducts, fetchCategories, fetchBrands, categories.length, brands.length]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));

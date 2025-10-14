@@ -1,16 +1,58 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useOrders } from '../contexts/OrdersContext';
-import { FaBox, FaClock, FaCheck, FaTruck, FaTimes, FaEye, FaSearch, FaFilter, FaShoppingBag, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard } from 'react-icons/fa';
+import { useSocket } from '../contexts/SocketContext';
+import { FaBox, FaClock, FaCheck, FaTruck, FaTimes, FaEye, FaSearch, FaFilter, FaShoppingBag, FaCalendarAlt, FaMapMarkerAlt, FaCreditCard, FaWifi } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import '../styles/OrdersPage.css';
+
+// Composant pour l'image d'un article de commande
+const OrderItemImage = ({ article, isCustomItem }) => {
+  // Image source selon le type d'article
+  const getImageSource = () => {
+    if (isCustomItem) {
+      // Pour les hoodies personnalisés, afficher le logo de la boutique
+      return '/logo-aynext.png';
+    } else {
+      return article.produit?.images?.[0]?.url || article.produit?.images?.[0] || '/logo-aynext.png';
+    }
+  };
+
+  return (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '5px',
+      width: '100px',
+      height: '120px'
+    }}>
+      <img 
+        src={getImageSource()} 
+        alt={isCustomItem ? (article.nom || 'Hoodie personnalisé') : (article.produit?.nom || 'Produit')}
+        onError={(e) => {
+          e.target.src = '/logo-aynext.png';
+        }}
+        style={{
+          maxWidth: '80px',
+          maxHeight: '80px',
+          objectFit: 'contain'
+        }}
+      />
+    </div>
+  );
+};
 
 const Orders = () => {
   const { orders, loading, error, fetchOrders, getOrdersCount } = useOrders();
+  const { socket, isConnected } = useSocket();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [realtimeUpdates, setRealtimeUpdates] = useState(0);
 
   // Le chargement initial est géré par OrdersContext
 
@@ -42,9 +84,36 @@ const Orders = () => {
       count: getOrdersCount(),
       ordersLength: orders?.length,
       ordersType: typeof orders,
-      ordersIsArray: Array.isArray(orders)
+      ordersIsArray: Array.isArray(orders),
+      websocketConnected: isConnected,
+      realtimeUpdates
     });
-  }, [orders, loading, error, getOrdersCount]);
+  }, [orders, loading, error, getOrdersCount, isConnected, realtimeUpdates]);
+
+  // Écouteur WebSocket supplémentaire pour les animations visuelles
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleOrderUpdate = (data) => {
+      console.log('🎨 Animation de mise à jour de commande:', data);
+      setRealtimeUpdates(prev => prev + 1);
+      
+      // Si la commande actuellement affichée en détail est mise à jour
+      if (selectedOrder && selectedOrder._id === data.orderId) {
+        // Mettre à jour aussi les détails affichés
+        setSelectedOrder(prev => ({
+          ...prev,
+          statut: data.newStatus
+        }));
+      }
+    };
+
+    socket.on('order-status-updated', handleOrderUpdate);
+
+    return () => {
+      socket.off('order-status-updated', handleOrderUpdate);
+    };
+  }, [socket, isConnected, selectedOrder]);
 
 
   const formatDate = (dateString) => {
@@ -297,6 +366,24 @@ const Orders = () => {
               <p className="orders-subtitle">
                 Retrouvez l'historique de toutes vos commandes
               </p>
+              {/* Indicateur de connexion WebSocket */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                marginTop: '8px',
+                fontSize: '0.875rem',
+                color: isConnected ? '#10b981' : '#6b7280'
+              }}>
+                <FaWifi style={{ 
+                  color: isConnected ? '#10b981' : '#ef4444',
+                  animation: isConnected ? 'pulse 2s ease-in-out infinite' : 'none'
+                }} />
+                <span>
+                  {isConnected ? 'Mises à jour en temps réel activées' : 'Mises à jour en temps réel désactivées'}
+                  {realtimeUpdates > 0 && ` (${realtimeUpdates} mise(s) à jour)`}
+                </span>
+              </div>
             </div>
             <div className="orders-stats">
               <div className="stat-card">
@@ -345,10 +432,10 @@ const Orders = () => {
 
         {/* Liste des commandes */}
         <div className="orders-list">
-          {filteredOrders.map((order) => {
+          {filteredOrders.map((order, index) => {
             const statusInfo = getStatusInfo(order.statut);
             return (
-              <div key={order._id} className="order-card">
+              <div key={`order-${order._id}-${index}`} className="order-card">
                 {/* En-tête de la carte */}
                 <div className="order-card-header">
                   <div className="order-header-top">
@@ -360,7 +447,7 @@ const Orders = () => {
                       <span className="order-id">#{order._id?.slice(-8)}</span>
                     </div>
                     <div className="order-price-section">
-                      <div className="order-total">{order.total} TND</div>
+                      <div className="order-total">{parseFloat(order.total).toFixed(2)} TND</div>
                       <div className="order-date">
                         <FaCalendarAlt className="inline mr-1" />
                         {formatDate(order.dateCommande)}
@@ -379,24 +466,39 @@ const Orders = () => {
                         Articles
                       </h4>
                       <div className="articles-list">
-                        {order.articles?.slice(0, 3).map((article, index) => (
-                          <div key={index} className="article-item">
-                            <div>
-                              <div className="article-name">
-                                {article.type === 'custom_hoodie' && (
-                                  <span className="mr-2">🎨</span>
-                                )}
-                                {article.nom}
-                                {article.quantite > 1 && (
-                                  <span className="ml-2 text-sm text-gray-500">
-                                    (x{article.quantite})
-                                  </span>
-                                )}
+                        {order.articles?.slice(0, 3).map((article, index) => {
+                          const isCustomItem = article.type === 'custom_hoodie' || !article.produit;
+                          
+                          return (
+                            <div key={index} className="article-item">
+                              <div className="article-image">
+                                <OrderItemImage 
+                                  article={article} 
+                                  isCustomItem={isCustomItem}
+                                />
+                              </div>
+                              <div>
+                                <div className="article-name">
+                                  {isCustomItem ? (article.nom || 'Hoodie personnalisé') : (article.produit?.nom || 'Produit inconnu')}
+                                  {article.quantite > 1 && (
+                                    <span className="ml-2 text-sm text-gray-500">
+                                      (x{article.quantite})
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="article-price">
+                                {(() => {
+                                  const prix = article.prixUnitaire || article.prix || 0;
+                                  const quantite = article.quantite || 1;
+                                  const total = parseFloat(prix) * parseInt(quantite);
+                                  console.log('💰 Prix calcul liste:', { prix, quantite, total, article });
+                                  return isNaN(total) ? '0.00' : total.toFixed(2);
+                                })()} TND
                               </div>
                             </div>
-                            <div className="article-price">{article.prixTotal} TND</div>
-                          </div>
-                        ))}
+                          );
+                        })}
                         {order.articles?.length > 3 && (
                           <div className="text-center text-sm text-gray-500 py-2">
                             +{order.articles.length - 3} autres articles
@@ -429,7 +531,18 @@ const Orders = () => {
                 <div className="order-card-footer">
                   <div className="payment-info">
                     <FaCreditCard className="inline mr-2" />
-                    Méthode de paiement: <span className="payment-method">{order.methodePaiement}</span>
+                    Méthode de paiement: <span className="payment-method">
+                      {(() => {
+                        const method = order.methodePaiement;
+                        const paymentMethods = {
+                          'carte': '💳 Carte bancaire',
+                          'especes': '💰 Espèces',
+                          'virement': '🏦 Virement bancaire',
+                          'paypal': '💳 PayPal'
+                        };
+                        return paymentMethods[method] || method || 'Non spécifiée';
+                      })()}
+                    </span>
                   </div>
                   <button 
                     className="btn-view-details"
@@ -496,7 +609,7 @@ const Orders = () => {
                   </div>
                   <div className="info-item">
                     <strong>Total:</strong>
-                    <span className="total-amount">{selectedOrder.total} TND</span>
+                    <span className="total-amount">{parseFloat(selectedOrder.total).toFixed(2)} TND</span>
                   </div>
                 </div>
               </div>
@@ -505,26 +618,57 @@ const Orders = () => {
               <div className="order-info-section">
                 <h3>Articles commandés</h3>
                 <div className="articles-details">
-                  {selectedOrder.articles?.map((article, index) => (
-                    <div key={index} className="article-detail">
-                      <div className="article-info">
-                        <div className="article-name">
-                          {article.type === 'custom_hoodie' && (
-                            <span className="mr-2">🎨</span>
-                          )}
-                          {article.nom}
+              {selectedOrder.articles?.map((article, index) => {
+                // Vérifier si c'est un article personnalisé
+                const isCustomItem = article.type === 'custom_hoodie' || !article.produit;
+                
+                console.log('🔍 Article dans modal:', {
+                  index,
+                  article,
+                  isCustomItem,
+                  customData: article.customData
+                });
+                    
+                    return (
+                      <div key={index} className="article-detail">
+                        <div className="article-info">
+                          <div className="article-image">
+                            <OrderItemImage 
+                              article={article} 
+                              isCustomItem={isCustomItem}
+                            />
+                          </div>
+                          <div className="article-details-text">
+                            <div className="article-name">
+                              {isCustomItem ? (article.nom || 'Hoodie personnalisé') : (article.produit?.nom || 'Produit inconnu')}
+                            </div>
+                            <div className="article-details">
+                              <span>Quantité: {article.quantite}</span>
+                              {article.taille && <span>Taille: {article.taille}</span>}
+                              {isCustomItem && article.customData ? (
+                                <>
+                                  <span>Couleur: {article.customData.couleurNom || article.couleur}</span>
+                                  <span>Logo: {article.customData.logoPosition}</span>
+                                  <span>Taille logo: {article.customData.logoSize}px</span>
+                                </>
+                              ) : (
+                                article.couleur && <span>Couleur: {article.couleur}</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="article-details">
-                          <span>Quantité: {article.quantite}</span>
-                          {article.taille && <span>Taille: {article.taille}</span>}
-                          {article.couleur && <span>Couleur: {article.couleur}</span>}
+                        <div className="article-price">
+                          {(() => {
+                            const prix = article.prixUnitaire || article.prix || 0;
+                            const quantite = article.quantite || 1;
+                            const total = parseFloat(prix) * parseInt(quantite);
+                            console.log('💰 Prix calcul:', { prix, quantite, total, article });
+                            return isNaN(total) ? '0.00' : total.toFixed(2);
+                          })()} TND
                         </div>
                       </div>
-                      <div className="article-price">
-                        {article.prixTotal} TND
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -547,7 +691,21 @@ const Orders = () => {
               <div className="order-info-section">
                 <h3>Méthode de paiement</h3>
                 <div className="payment-details">
-                  <span className="payment-method">{selectedOrder.methodePaiement}</span>
+                  <span className="payment-method">
+                    {(() => {
+                      const method = selectedOrder.methodePaiement;
+                      
+                      // Traduire les méthodes de paiement
+                      const paymentMethods = {
+                        'carte': '💳 Carte bancaire',
+                        'especes': '💰 Espèces',
+                        'virement': '🏦 Virement bancaire',
+                        'paypal': '💳 PayPal'
+                      };
+                      
+                      return paymentMethods[method] || method || 'Non spécifiée';
+                    })()}
+                  </span>
                 </div>
               </div>
 

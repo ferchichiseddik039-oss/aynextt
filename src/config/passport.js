@@ -8,7 +8,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:5001/api/auth/google/callback"
+    callbackURL: "http://localhost:5001/api/auth/google/callback",
+    accessType: 'online',  // Pas besoin de refresh token
+    prompt: 'select_account'  // Force la sélection du compte
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       let user = await User.findOne({

@@ -22,6 +22,7 @@ import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
 import AdminSetup from './pages/AdminSetup';
 import Orders from './pages/Orders';
+import OrdersDebug from './pages/OrdersDebug';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import TestHoodie from './components/TestHoodie';
@@ -71,6 +72,11 @@ const AppContent = () => {
           <Route path="/orders" element={
             <ProtectedRoute>
               <Orders />
+            </ProtectedRoute>
+          } />
+          <Route path="/orders-debug" element={
+            <ProtectedRoute>
+              <OrdersDebug />
             </ProtectedRoute>
           } />
           

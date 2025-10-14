@@ -312,29 +312,70 @@ const Cart = () => {
 const CartItem = ({ item, onQuantityChange, onRemove, updating }) => {
   const [quantity, setQuantity] = useState(item.quantite);
 
+  // Vérifier si c'est un article personnalisé
+  const isCustomItem = item.type === 'custom_hoodie' || !item.produit;
+  
   const handleQuantityChange = (newQuantity) => {
     if (newQuantity >= 1 && newQuantity <= 10) {
       setQuantity(newQuantity);
-      onQuantityChange(item.produit._id, newQuantity);
+      // Utiliser l'ID de l'article dans le panier (MongoDB _id)
+      onQuantityChange(item._id, newQuantity);
     }
   };
 
   const handleRemove = () => {
     console.log('🔍 CartItem - item:', item);
-    console.log('🔍 CartItem - item.produit:', item.produit);
-    console.log('🔍 CartItem - item.produit._id:', item.produit._id);
-    onRemove(item.produit._id);
+    console.log('🔍 CartItem - isCustomItem:', isCustomItem);
+    console.log('🔍 CartItem - item._id:', item._id);
+    
+    // Utiliser l'ID de l'article dans le panier (MongoDB _id)
+    onRemove(item._id);
   };
 
-  const price = item.prixUnitaire;
+  const price = item.prix || item.prixUnitaire || 0;
   const totalPrice = price * item.quantite;
+
+  // Image source pour les articles personnalisés vs standard
+  const getImageSource = () => {
+    if (isCustomItem) {
+      // Pour les articles personnalisés, utiliser une image par défaut ou le logo
+      return item.customData?.logo || '/placeholder-product.jpg';
+    } else {
+      // Pour les articles standard
+      return item.produit?.images?.[0]?.url || item.produit?.images?.[0] || '/placeholder-product.jpg';
+    }
+  };
+
+  const getImageAlt = () => {
+    if (isCustomItem) {
+      return item.nom || 'Hoodie personnalisé';
+    } else {
+      return item.produit?.images?.[0]?.alt || item.produit?.nom;
+    }
+  };
+
+  const getItemName = () => {
+    if (isCustomItem) {
+      return item.nom || 'Hoodie personnalisé';
+    } else {
+      return item.produit?.nom;
+    }
+  };
+
+  const getItemBrand = () => {
+    if (isCustomItem) {
+      return 'Personnalisé';
+    } else {
+      return formatBrand(item.produit?.marque);
+    }
+  };
 
   return (
     <div className="cart-item">
       <div className="item-image">
         <img 
-          src={item.produit.images?.[0]?.url || item.produit.images?.[0] || '/placeholder-product.jpg'} 
-          alt={item.produit.images?.[0]?.alt || item.produit.nom}
+          src={getImageSource()} 
+          alt={getImageAlt()}
           onError={(e) => {
             e.target.src = '/placeholder-product.jpg';
           }}
@@ -344,20 +385,32 @@ const CartItem = ({ item, onQuantityChange, onRemove, updating }) => {
       <div className="item-details">
         <div className="item-info">
           <h4 className="item-name">
-            <Link to={`/product/${item.produit._id}`}>
-              {item.produit.nom}
-            </Link>
+            {isCustomItem ? (
+              // Pour les articles personnalisés, pas de lien vers une page produit
+              getItemName()
+            ) : (
+              // Pour les articles standard, garder le lien
+              <Link to={`/product/${item.produit._id}`}>
+                {getItemName()}
+              </Link>
+            )}
           </h4>
-          <p className="item-brand">{formatBrand(item.produit.marque)}</p>
+          <p className="item-brand">{getItemBrand()}</p>
           <div className="item-options">
             <span className="option">Taille: {item.taille}</span>
-            <span className="option">Couleur: {item.couleur}</span>
+            <span className="option">Couleur: {isCustomItem ? (item.customData?.couleurNom || item.couleur) : item.couleur}</span>
+            {isCustomItem && item.customData && (
+              <>
+                <span className="option">Logo: {item.customData.logoPosition}</span>
+                <span className="option">Taille logo: {item.customData.logoSize}px</span>
+              </>
+            )}
           </div>
         </div>
 
         <div className="item-price">
-          <span className="unit-price">{price.toFixed(2)} TND</span>
-          <span className="total-price">{totalPrice.toFixed(2)} TND</span>
+          <span className="unit-price">{Number(price).toFixed(2)} TND</span>
+          <span className="total-price">{Number(totalPrice).toFixed(2)} TND</span>
         </div>
 
         <div className="item-quantity">

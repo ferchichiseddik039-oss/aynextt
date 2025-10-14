@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaShoppingBag, FaHeart, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/AuthContext';
 import { formatBrand } from '../utils/formatUtils';
+import api from '../config/axios';
 import '../styles/Profile.css';
 
 const Profile = () => {
@@ -17,25 +18,15 @@ const Profile = () => {
 
   const { user, updateProfile, logout } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      fetchUserData();
-    }
-  }, [user]);
-
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
       
       // Charger les commandes
-      const ordersResponse = await fetch('/api/orders', {
-        headers: {
-          'x-auth-token': localStorage.getItem('token')
-        }
-      });
+      const ordersResponse = await api.get('/orders');
       
-      if (ordersResponse.ok) {
-        const ordersData = await ordersResponse.json();
+      if (ordersResponse.data.success) {
+        const ordersData = ordersResponse.data;
         setOrders(ordersData.orders);
       }
 
@@ -61,7 +52,13 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user, fetchUserData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -464,8 +461,100 @@ const ProfileTab = ({ user, formData, editing, errors, onEdit, onSave, onCancel,
   );
 };
 
+// Composant pour un item de commande
+const OrderItem = ({ item }) => {
+  const isCustomItem = item.type === 'custom_hoodie' || !item.produit;
+  
+  // Image source selon le type d'article
+  const getImageSource = () => {
+    if (isCustomItem) {
+      // Pour les hoodies personnalisés, afficher le logo de la boutique
+      return '/logo-aynext.png';
+    } else {
+      return item.produit?.images?.[0]?.url || item.produit?.images?.[0] || '/logo-aynext.png';
+    }
+  };
+
+  const imageSrc = getImageSource();
+  
+  // Nom de l'article selon le type
+  const getItemName = () => {
+    if (isCustomItem) {
+      return item.nom || 'Hoodie personnalisé';
+    } else {
+      return item.produit?.nom;
+    }
+  };
+  
+  // Marque selon le type
+  const getItemBrand = () => {
+    if (isCustomItem) {
+      return 'Personnalisé';
+    } else {
+      return formatBrand(item.produit?.marque);
+    }
+  };
+  
+  // Détails selon le type
+  const getItemDetails = () => {
+    if (isCustomItem && item.customData) {
+      return (
+        <>
+          <p>Taille: {item.taille} | Couleur: {item.customData.couleurNom || item.couleur}</p>
+          <p>Logo: {item.customData.logoPosition} | Taille logo: {item.customData.logoSize}px</p>
+          <p>Quantité: {item.quantite}</p>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <p>Taille: {item.taille} | Couleur: {item.couleur}</p>
+          <p>Quantité: {item.quantite}</p>
+        </>
+      );
+    }
+  };
+  
+  return (
+    <div className="order-item">
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '5px',
+        width: '80px',
+        height: '80px'
+      }}>
+        <img 
+          src={imageSrc} 
+          alt={getItemName()}
+          onError={(e) => {
+            e.target.src = '/logo-aynext.png';
+          }}
+          style={{
+            maxWidth: '60px',
+            maxHeight: '60px',
+            objectFit: 'contain'
+          }}
+        />
+      </div>
+      
+      <div className="item-details">
+        <h5>{getItemName()}</h5>
+        <p>{getItemBrand()}</p>
+        {getItemDetails()}
+      </div>
+      <div className="item-price">
+        {parseFloat(item.prixUnitaire).toFixed(2)} TND
+      </div>
+    </div>
+  );
+};
+
 // Onglet Commandes
 const OrdersTab = ({ orders }) => {
+
   const getStatusColor = (status) => {
     const statusColors = {
       'en_attente': 'pending',
@@ -528,31 +617,17 @@ const OrdersTab = ({ orders }) => {
 
             <div className="order-items">
               {order.articles.map((item, index) => (
-                <div key={index} className="order-item">
-                  <img 
-                    src={item.produit.images[0] || '/placeholder-product.jpg'} 
-                    alt={item.produit.nom}
-                    onError={(e) => {
-                      e.target.src = '/placeholder-product.jpg';
-                    }}
-                  />
-                  <div className="item-details">
-                    <h5>{item.produit.nom}</h5>
-                    <p>{formatBrand(item.produit.marque)}</p>
-                    <p>Taille: {item.taille} | Couleur: {item.couleur}</p>
-                    <p>Quantité: {item.quantite}</p>
-                  </div>
-                  <div className="item-price">
-                    {item.prixUnitaire} TND
-                  </div>
-                </div>
+                <OrderItem 
+                  key={index} 
+                  item={item}
+                />
               ))}
             </div>
 
             <div className="order-footer">
               <div className="order-total">
                 <span>Total:</span>
-                <span className="total-amount">{order.total} TND</span>
+                <span className="total-amount">{parseFloat(order.total).toFixed(2)} TND</span>
               </div>
               <div className="order-actions">
                 <Link to={`/orders/${order._id}`} className="btn-secondary">
@@ -680,3 +755,4 @@ const SettingsTab = ({ onLogout }) => {
 };
 
 export default Profile;
+

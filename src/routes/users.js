@@ -173,14 +173,11 @@ router.get('/admin/:id/stats', [auth, admin], async (req, res) => {
     const Order = require('../lib/Order');
     const orders = await Order.find({ utilisateur: userId });
     
-    // Calculer les statistiques
-    const nombreCommandes = orders.length;
-    const totalDepense = orders.reduce((total, order) => {
-      // Ne compter que les commandes livrées ou confirmées
-      if (order.statut === 'livree' || order.statut === 'confirmee' || order.statut === 'expediee') {
-        return total + order.total;
-      }
-      return total;
+    // Calculer les statistiques - uniquement les commandes confirmées
+    const commandesConfirmees = orders.filter(order => order.statut === 'confirmee');
+    const nombreCommandes = commandesConfirmees.length;
+    const totalDepense = commandesConfirmees.reduce((total, order) => {
+      return total + (order.total || 0);
     }, 0);
 
     res.json({

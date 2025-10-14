@@ -4,7 +4,13 @@ const cartItemSchema = new mongoose.Schema({
   produit: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
-    required: true
+    required: function() {
+      return this.type === 'standard'; // Requis seulement pour les articles standard
+    }
+  },
+  nom: {
+    type: String,
+    required: false // Pour les articles personnalisés
   },
   quantite: {
     type: Number,
@@ -13,16 +19,34 @@ const cartItemSchema = new mongoose.Schema({
   },
   taille: {
     type: String,
-    required: true
+    required: false // Pas requis pour tous les types d'articles
   },
   couleur: {
     type: String,
+    required: false // Pas requis pour tous les types d'articles
+  },
+  prix: {
+    type: Number,
     required: true
   },
   prixUnitaire: {
     type: Number,
-    required: true
-  }
+    required: false // Pour compatibilité avec l'ancien système
+  },
+  // Champs pour les articles personnalisés
+  type: {
+    type: String,
+    enum: ['standard', 'custom_hoodie'],
+    default: 'standard'
+  },
+  customData: {
+    logo: String,
+    logoPosition: String,
+    logoSize: Number,
+    couleurCode: String,
+    couleurNom: String
+  },
+  notes: String
 });
 
 const cartSchema = new mongoose.Schema({
@@ -47,7 +71,8 @@ const cartSchema = new mongoose.Schema({
 // Méthode pour calculer le total du panier
 cartSchema.methods.calculerTotal = function() {
   return this.articles.reduce((total, article) => {
-    return total + (article.prixUnitaire * article.quantite);
+    const prix = article.prix || article.prixUnitaire || 0;
+    return total + (prix * article.quantite);
   }, 0);
 };
 

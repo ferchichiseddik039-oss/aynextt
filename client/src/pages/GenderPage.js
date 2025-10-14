@@ -154,15 +154,25 @@ const GenderPage = () => {
       });
       
       const data = response.data;
-      const produits = data.produits || [];
+      const produits = data.products || data.produits || [];
+      
+      console.log('🔍 GenderPage - Genre demandé:', genre);
+      console.log('🔍 GenderPage - Produits reçus:', produits.length);
+      console.log('🔍 GenderPage - Structure des données:', data);
       
       // Filtrer les produits pour ne garder que ceux qui sont disponibles
       const produitsDisponibles = produits.filter(product => {
+        console.log('🔍 GenderPage - Vérification produit:', product.nom, 'genre:', product.genre, 'tailles:', product.tailles);
         if (product.tailles && Array.isArray(product.tailles)) {
-          return product.tailles.some(taille => taille.stock > 0);
+          const hasStock = product.tailles.some(taille => taille.stock > 0);
+          console.log('🔍 GenderPage - Produit', product.nom, 'a du stock:', hasStock);
+          return hasStock;
         }
+        console.log('🔍 GenderPage - Produit', product.nom, 'sans tailles définies, considéré comme disponible');
         return true; // Si pas de tailles définies, on garde le produit
       });
+      
+      console.log('✅ GenderPage - Produits disponibles après filtrage:', produitsDisponibles.length);
       
       setProducts(produitsDisponibles);
       setTotalPages(Math.ceil((data.total || 0) / 12));

@@ -75,13 +75,24 @@ const SettingsTab = ({ onRefresh }) => {
     try {
       setLoading(true);
       const response = await api.get('/settings');
-      const settingsData = response.data;
+      console.log('📦 Réponse API settings:', response.data);
+      
+      // Gérer différents formats de réponse
+      let settingsData;
+      if (response.data.settings) {
+        // Format: { success: true, settings: {...} }
+        settingsData = response.data.settings;
+      } else {
+        // Format direct: {...}
+        settingsData = response.data;
+      }
       
       // Forcer seulement le nom de la boutique à "AYNEXT" (l'email reste modifiable)
       if (settingsData.informationsGenerales) {
         settingsData.informationsGenerales.nomBoutique = 'AYNEXT';
       }
       
+      console.log('📦 Settings finales:', settingsData);
       setSettings(settingsData);
     } catch (error) {
       console.error('Erreur lors du chargement des paramètres:', error);
@@ -98,13 +109,7 @@ const SettingsTab = ({ onRefresh }) => {
       if (section) {
         // Sauvegarder une section spécifique
         console.log(`💾 Sauvegarde section ${section}:`, settings[section]);
-        // Test avec route simple d'abord
-        if (section === 'livraison') {
-          console.log('🧪 Test avec route simple...');
-          const testResponse = await api.put('/settings/test', settings[section]);
-          console.log('✅ Test réussi:', testResponse.data);
-        }
-        await api.put(`/api/settings/${section}`, settings[section]);
+        await api.put(`/settings/${section}`, settings[section]);
         toast.success(`Paramètres ${section} mis à jour avec succès`);
       } else {
         // Sauvegarder tous les paramètres

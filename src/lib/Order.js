@@ -38,6 +38,11 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
+  numeroCommande: {
+    type: String,
+    unique: true,
+    required: true
+  },
   utilisateur: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -64,7 +69,7 @@ const orderSchema = new mongoose.Schema({
   methodePaiement: {
     type: String,
     required: true,
-    enum: ['carte', 'paypal', 'virement', 'especes']
+    enum: ['carte', 'paypal', 'virement', 'especes', 'en_attente']
   },
   statut: {
     type: String,

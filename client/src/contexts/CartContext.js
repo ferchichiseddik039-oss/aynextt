@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../config/axios';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
@@ -19,19 +19,25 @@ export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   // Charger le panier depuis l'API
-  const loadCart = async () => {
+  const loadCart = useCallback(async () => {
     if (!isAuthenticated) return;
     
     try {
       setLoading(true);
       const res = await api.get('/cart');
-      setCart(res.data);
+      console.log('🛒 Réponse loadCart:', res.data);
+      if (res.data.success && res.data.cart) {
+        setCart(res.data.cart);
+      } else {
+        setCart({ articles: [] });
+      }
     } catch (err) {
       console.error('Erreur lors du chargement du panier:', err);
+      setCart({ articles: [] });
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   // Charger le panier quand l'utilisateur se connecte
   useEffect(() => {
@@ -40,7 +46,7 @@ export const CartProvider = ({ children }) => {
     } else {
       setCart({ articles: [] });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadCart]);
 
   // Ajouter un article au panier
   const addToCart = async (productId, quantity, size, color) => {
@@ -63,7 +69,12 @@ export const CartProvider = ({ children }) => {
       });
       
       console.log('Réponse du serveur:', res.data);
-      setCart(res.data);
+      if (res.data.success && res.data.cart) {
+        setCart(res.data.cart);
+      } else {
+        // Recharger le panier depuis le serveur
+        await loadCart();
+      }
       toast.success('Article ajouté au panier !');
       return { success: true };
     } catch (err) {
@@ -81,7 +92,7 @@ export const CartProvider = ({ children }) => {
   const updateQuantity = async (articleId, quantity) => {
     try {
       setLoading(true);
-      const res = await api.put(`/api/cart/modifier/${articleId}`, {
+      const res = await api.put(`/cart/modifier/${articleId}`, {
         quantite: quantity
       });
       
@@ -102,7 +113,7 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       console.log('🔄 Suppression de l\'article:', articleId);
-      const res = await api.delete(`/api/cart/supprimer/${articleId}`);
+      const res = await api.delete(`/cart/supprimer/${articleId}`);
       
       console.log('📦 Réponse de l\'API:', res.data);
       
@@ -131,9 +142,13 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     try {
       setLoading(true);
-      await api.delete('/cart/vider');
+      const res = await api.delete('/cart/vider');
       
-      setCart({ articles: [] });
+      if (res.data.success && res.data.cart) {
+        setCart(res.data.cart);
+      } else {
+        setCart({ articles: [] });
+      }
       toast.success('Panier vidé !');
       return { success: true };
     } catch (err) {
@@ -147,18 +162,28 @@ export const CartProvider = ({ children }) => {
 
   // Calculer le total du panier
   const getTotal = () => {
+    if (!cart || !cart.articles || !Array.isArray(cart.articles)) {
+      return 0;
+    }
     return cart.articles.reduce((total, article) => {
-      return total + (article.prixUnitaire * article.quantite);
+      const prix = article.prix || article.prixUnitaire || 0;
+      return total + (Number(prix) * Number(article.quantite));
     }, 0);
   };
 
   // Obtenir le nombre total d'articles
   const getItemCount = () => {
+    if (!cart || !cart.articles || !Array.isArray(cart.articles)) {
+      return 0;
+    }
     return cart.articles.reduce((count, article) => count + article.quantite, 0);
   };
 
   // Vérifier si le panier est vide
   const isEmpty = () => {
+    if (!cart || !cart.articles || !Array.isArray(cart.articles)) {
+      return true;
+    }
     return cart.articles.length === 0;
   };
 

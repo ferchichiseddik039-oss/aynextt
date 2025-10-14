@@ -17,6 +17,10 @@ yarn-error.log*
 build/
 dist/
 
+# Uploaded images
+client/public/uploads/*
+!client/public/uploads/products/.gitkeep
+
 # Logs
 logs
 *.log

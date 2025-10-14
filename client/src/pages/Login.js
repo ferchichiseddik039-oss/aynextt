@@ -84,9 +84,9 @@ const Login = () => {
 
   const handleSocialLogin = (provider) => {
     if (provider === 'Google') {
-      window.location.href = '/api/auth/google';
+      window.location.href = 'http://localhost:5001/api/auth/google';
     } else if (provider === 'Facebook') {
-      window.location.href = '/api/auth/facebook';
+      window.location.href = 'http://localhost:5001/api/auth/facebook';
     }
   };
 

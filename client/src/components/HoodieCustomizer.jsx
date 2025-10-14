@@ -24,6 +24,7 @@ export default function HoodieCustomizer() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [logoPosition, setLogoPosition] = useState("chest"); // position par défaut
   const [logoSize, setLogoSize] = useState(80); // taille par défaut
+  const [hoodieSize, setHoodieSize] = useState("M"); // taille du hoodie par défaut
 
   // Fonction pour nettoyer les blob URLs
   const cleanupBlobUrl = (url) => {
@@ -31,6 +32,7 @@ export default function HoodieCustomizer() {
       URL.revokeObjectURL(url);
     }
   };
+
 
   // Fonction pour fermer
   const handleClose = () => {
@@ -62,6 +64,7 @@ export default function HoodieCustomizer() {
     };
   }, [logo]);
 
+
   // Positions disponibles pour le logo
   const logoPositions = [
     { id: "chest", name: "Poitrine", icon: "👕" },
@@ -69,6 +72,16 @@ export default function HoodieCustomizer() {
     { id: "sleeve", name: "Manche", icon: "👋" },
     { id: "hood", name: "Capuche", icon: "🎩" },
     { id: "pocket", name: "Poche", icon: "👝" }
+  ];
+
+  // Tailles disponibles pour le hoodie
+  const hoodieSizes = [
+    { id: "XS", name: "XS", description: "Extra Small" },
+    { id: "S", name: "S", description: "Small" },
+    { id: "M", name: "M", description: "Medium" },
+    { id: "L", name: "L", description: "Large" },
+    { id: "XL", name: "XL", description: "Extra Large" },
+    { id: "XXL", name: "XXL", description: "Double XL" }
   ];
 
   // Fonction pour définir la taille recommandée selon la position
@@ -176,15 +189,16 @@ export default function HoodieCustomizer() {
         logo: logo, // Le logo est déjà en base64 ou URL
         logoPosition: logoPosition,
         logoSize: logoSize,
-        prix: 45.99, // Prix fixe pour un hoodie personnalisé
+        prix: 55.99, // Prix fixe pour un hoodie personnalisé
         quantite: 1,
-        taille: 'M', // Taille par défaut, on pourrait ajouter un sélecteur
-        notes: `Hoodie personnalisé - Couleur: ${predefinedColors.find(c => c.value === color)?.name}, Position logo: ${logoPositions.find(p => p.id === logoPosition)?.name}`
+        taille: hoodieSize,
+        notes: `Hoodie personnalisé - Couleur: ${predefinedColors.find(c => c.value === color)?.name}, Position logo: ${logoPositions.find(p => p.id === logoPosition)?.name}, Taille: ${hoodieSize}`
       };
 
       console.log('=== DONNÉES ENVOYÉES ===');
       console.log('Couleur:', color);
       console.log('Couleur nom:', predefinedColors.find(c => c.value === color)?.name);
+      console.log('Taille hoodie:', hoodieSize);
       console.log('Logo (premiers 100 caractères):', logo ? logo.substring(0, 100) + '...' : 'AUCUN LOGO');
       console.log('Position logo:', logoPosition);
       console.log('Taille logo:', logoSize);
@@ -522,6 +536,58 @@ export default function HoodieCustomizer() {
                     </div>
                   </div>
 
+                  {/* Sélection de taille */}
+                  <div style={{ marginBottom: "20px" }}>
+                    <label style={{ display: "block", marginBottom: "10px", fontWeight: "bold" }}>
+                      📏 Choisir la taille :
+                    </label>
+                    <div style={{ 
+                      display: "flex", 
+                      flexWrap: "wrap", 
+                      gap: "8px", 
+                      justifyContent: "center",
+                      maxWidth: "500px",
+                      margin: "0 auto"
+                    }}>
+                      {hoodieSizes.map((size) => (
+                        <button
+                          key={size.id}
+                          onClick={() => setHoodieSize(size.id)}
+                          style={{
+                            padding: "10px 15px",
+                            border: hoodieSize === size.id ? "3px solid #007bff" : "2px solid #ddd",
+                            borderRadius: "25px",
+                            background: hoodieSize === size.id ? "#e3f2fd" : "white",
+                            color: hoodieSize === size.id ? "#007bff" : "#333",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: "4px",
+                            transition: "all 0.2s ease",
+                            fontWeight: hoodieSize === size.id ? "bold" : "normal",
+                            boxShadow: hoodieSize === size.id ? "0 4px 8px rgba(0,123,255,0.3)" : "0 2px 4px rgba(0,0,0,0.1)",
+                            minWidth: "70px",
+                            justifyContent: "center"
+                          }}
+                          title={size.description}
+                        >
+                          <span style={{ fontSize: "16px", fontWeight: "bold" }}>{size.name}</span>
+                          <span style={{ fontSize: "10px", opacity: 0.7 }}>{size.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ 
+                      marginTop: "10px", 
+                      fontSize: "12px", 
+                      color: "#666",
+                      textAlign: "center"
+                    }}>
+                      Taille sélectionnée : <strong style={{ color: "#007bff" }}>{hoodieSize} - {hoodieSizes.find(s => s.id === hoodieSize)?.description}</strong>
+                    </div>
+                  </div>
+
                   <label>
                     Ajouter logo :
                     <input
@@ -714,7 +780,7 @@ export default function HoodieCustomizer() {
                       color: "#6c757d",
                       fontSize: "14px"
                     }}>
-                      Hoodie personnalisé - {predefinedColors.find(c => c.value === color)?.name} - {logoPositions.find(p => p.id === logoPosition)?.name}
+                      Hoodie personnalisé - {predefinedColors.find(c => c.value === color)?.name} - Taille {hoodieSize} - {logoPositions.find(p => p.id === logoPosition)?.name}
                     </p>
                     <p style={{ 
                       margin: "0 0 20px 0", 
@@ -722,7 +788,7 @@ export default function HoodieCustomizer() {
                       fontSize: "20px",
                       fontWeight: "bold"
                     }}>
-                      45,99 TND
+                      55,99 TND
                     </p>
                     <button
                       onClick={handleOrderCustomHoodie}

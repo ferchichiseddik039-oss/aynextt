@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     required: function() {
       return !this.isOAuth;
     },
-    minlength: 6
+    minlength: 8
   },
   // Champs OAuth
   googleId: {

@@ -56,7 +56,8 @@ router.get('/', async (req, res) => {
     const total = await Product.countDocuments(filtres);
 
     res.json({
-      produits,
+      success: true,
+      products: produits,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),

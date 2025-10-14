@@ -3,7 +3,7 @@
 
 export const REMOVE_BG_CONFIG = {
   // Remplacez par votre clé API Remove.bg
-  API_KEY: "4LoSYpzk2HgsrWwZPiXHFUQj",
+  API_KEY: "M89jsc1hY3uezoTQoDQ3JTHm",
   
   // URL de l'API
   API_URL: "https://api.remove.bg/v1.0/removebg",

@@ -10,44 +10,48 @@ const OAuthSuccess = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const error = searchParams.get('error');
+    const handleOAuthCallback = async () => {
+      const token = searchParams.get('token');
+      const error = searchParams.get('error');
 
-    console.log('🔄 OAuthSuccess - Traitement du callback:', { token: !!token, error });
+      console.log('🔄 OAuthSuccess - Traitement du callback:', { token: !!token, error });
 
-    if (error) {
-      console.error('❌ Erreur OAuth:', error);
-      toast.error('Erreur lors de la connexion. Veuillez réessayer.');
-      navigate('/login');
-      return;
-    }
-
-    if (token) {
-      console.log('✅ Token reçu, traitement de la connexion...');
-      
-      try {
-        // Sauvegarder le token
-        localStorage.setItem('token', token);
-        setAuthToken(token);
-        
-        console.log('✅ Token sauvegardé et utilisateur chargé');
-        toast.success('Connexion réussie !');
-        
-        // Rediriger vers la page d'accueil après un court délai
-        setTimeout(() => {
-          console.log('🔄 Redirection vers la page d\'accueil...');
-          navigate('/');
-        }, 2000);
-      } catch (error) {
-        console.error('❌ Erreur lors du traitement du token:', error);
+      if (error) {
+        console.error('❌ Erreur OAuth:', error);
         toast.error('Erreur lors de la connexion. Veuillez réessayer.');
         navigate('/login');
+        return;
       }
-    } else {
-      console.error('❌ Token manquant dans l\'URL');
-      toast.error('Token manquant. Veuillez réessayer.');
-      navigate('/login');
-    }
+
+      if (token) {
+        console.log('✅ Token reçu, traitement de la connexion...');
+        
+        try {
+          // Sauvegarder le token
+          localStorage.setItem('token', token);
+          await setAuthToken(token);
+          
+          console.log('✅ Token sauvegardé et utilisateur chargé');
+          toast.success('Connexion réussie !');
+          
+          // Rediriger immédiatement après le chargement de l'utilisateur
+          setTimeout(() => {
+            console.log('🔄 Redirection vers la page d\'accueil...');
+            navigate('/');
+          }, 1000);
+        } catch (error) {
+          console.error('❌ Erreur lors du traitement du token:', error);
+          toast.error('Erreur lors de la connexion. Veuillez réessayer.');
+          navigate('/login');
+        }
+      } else {
+        console.error('❌ Token manquant dans l\'URL');
+        toast.error('Token manquant. Veuillez réessayer.');
+        navigate('/login');
+      }
+    };
+
+    handleOAuthCallback();
   }, [searchParams, navigate, setAuthToken]);
 
   return (

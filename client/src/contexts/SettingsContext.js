@@ -93,8 +93,16 @@ export const SettingsProvider = ({ children }) => {
 
   // Fonction pour obtenir les méthodes de paiement actives
   const getActivePaymentMethods = () => {
+    // Méthodes de paiement par défaut
+    const defaultMethods = [
+      { value: 'carte', label: 'Carte bancaire', description: 'Visa, Mastercard, American Express' },
+      { value: 'paypal', label: 'PayPal', description: 'Paiement sécurisé via PayPal' },
+      { value: 'virement', label: 'Virement bancaire', description: 'Paiement par virement' },
+      { value: 'especes', label: 'Espèces', description: 'Paiement à la livraison' }
+    ];
+    
     if (!settings.paiement || !settings.paiement.methodesActives) {
-      return ['carte', 'paypal', 'virement', 'especes'];
+      return defaultMethods;
     }
     
     return settings.paiement.methodesActives.map(method => ({
