@@ -275,7 +275,9 @@ router.get('/google', (req, res, next) => {
     });
   }
   passport.authenticate('google', { 
-    scope: ['profile', 'email']
+    scope: ['profile', 'email'],
+    accessType: 'online',
+    includeGrantedScopes: true
   })(req, res, next);
 });
 

@@ -82,10 +82,24 @@ const Login = () => {
     }
   };
 
-  const handleSocialLogin = (provider) => {
+  const handleSocialLogin = async (provider) => {
     const apiUrl = window.location.hostname.includes('github.io')
       ? 'https://aynextt.onrender.com/api'
       : 'http://localhost:5001/api';
+    
+    // Ping le service pour le réveiller avant la connexion OAuth
+    if (window.location.hostname.includes('github.io')) {
+      try {
+        console.log('🔄 Ping du service Render avant OAuth...');
+        await fetch('https://aynextt.onrender.com/api/health', { 
+          method: 'GET',
+          timeout: 5000 
+        });
+        console.log('✅ Service Render réveillé');
+      } catch (error) {
+        console.log('⚠️ Ping échoué, mais on continue...');
+      }
+    }
     
     if (provider === 'Google') {
       window.location.href = `${apiUrl}/auth/google`;
