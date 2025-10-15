@@ -31,10 +31,10 @@ const ProductCard = ({ product, onAddToCart, onCustomize }) => {
     <div className="product-card" onClick={handleCardClick}>
       <div className="product-image">
         <img 
-          src={product?.images?.[0]?.url || '/placeholder-product.jpg'} 
+          src={product?.images?.[0]?.url || '/aynextt/placeholder-product.jpg'} 
           alt={product?.images?.[0]?.alt || product?.nom || 'Produit'}
           onError={(e) => {
-            e.target.src = '/placeholder-product.jpg';
+            e.target.src = '/aynextt/placeholder-product.jpg';
           }}
         />
         <div className="product-actions">

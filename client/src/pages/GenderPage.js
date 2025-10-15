@@ -33,12 +33,12 @@ const ProductCard = ({ product, onAddToCart, onCustomize }) => {
             src={product.images[0]?.url || product.images[0]} 
             alt={product.images[0]?.alt || product.nom}
             onError={(e) => {
-              e.target.src = '/hoodie-base.jpg';
+              e.target.src = '/aynextt/hoodie-base.jpg';
             }}
           />
         ) : (
           <img 
-            src="/hoodie-base.jpg" 
+            src="/aynextt/hoodie-base.jpg" 
             alt="Image par défaut"
             className="default-image"
           />

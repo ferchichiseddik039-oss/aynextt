@@ -530,7 +530,7 @@ const OrderItem = ({ item }) => {
           src={imageSrc} 
           alt={getItemName()}
           onError={(e) => {
-            e.target.src = '/logo-aynext.png';
+            e.target.src = '/aynextt/logo-aynext.png';
           }}
           style={{
             maxWidth: '60px',
@@ -681,7 +681,7 @@ const WishlistTab = ({ wishlist, setWishlist }) => {
                 src={product.image} 
                 alt={product.nom}
                 onError={(e) => {
-                  e.target.src = '/placeholder-product.jpg';
+                  e.target.src = '/aynextt/placeholder-product.jpg';
                 }}
               />
               <button 
