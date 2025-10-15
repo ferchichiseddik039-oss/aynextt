@@ -54,10 +54,16 @@ router.post('/inscription', [
     // Envoyer un email de bienvenue au nouvel utilisateur
     try {
       console.log('📧 Tentative d\'envoi de l\'email de bienvenue à:', user.email);
-      emailService.sendWelcomeEmail(user)
+      
+      // Utiliser Resend si disponible, sinon Gmail
+      const emailMethod = process.env.RESEND_API_KEY 
+        ? emailService.sendWelcomeEmailResend(user)
+        : emailService.sendWelcomeEmail(user);
+      
+      emailMethod
         .then(result => {
           if (result.success) {
-            console.log('✅ Email de bienvenue envoyé avec succès à:', user.email);
+            console.log(`✅ Email de bienvenue envoyé avec succès à: ${user.email} (${result.provider || 'Gmail'})`);
           } else {
             console.log('⚠️ Email de bienvenue non envoyé:', result.error);
           }
@@ -304,9 +310,14 @@ router.get('/google/callback',
       if (user.isOAuth && user.googleId) {
         try {
           console.log('📧 Tentative d\'envoi de l\'email de bienvenue...');
-          const emailResult = await emailService.sendWelcomeEmail(user);
+          
+          // Utiliser Resend si disponible, sinon Gmail
+          const emailResult = process.env.RESEND_API_KEY 
+            ? await emailService.sendWelcomeEmailResend(user)
+            : await emailService.sendWelcomeEmail(user);
+          
           if (emailResult.success) {
-            console.log('✅ Email de bienvenue envoyé avec succès à:', user.email);
+            console.log(`✅ Email de bienvenue envoyé avec succès à: ${user.email} (${emailResult.provider || 'Gmail'})`);
           } else {
             console.log('⚠️ Email de bienvenue non envoyé:', emailResult.error);
             console.log('ℹ️ La connexion OAuth continue normalement');

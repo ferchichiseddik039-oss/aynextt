@@ -321,11 +321,16 @@ router.put('/:id/statut', [auth, admin], [
       if (order.utilisateur && order.utilisateur.email) {
         console.log(`📧 Envoi d'email de notification de statut au client: ${order.utilisateur.email}`);
         
+        // Utiliser Resend si disponible, sinon Gmail
+        const emailMethod = process.env.RESEND_API_KEY 
+          ? emailService.sendOrderStatusEmailResend(order.utilisateur, order, statut)
+          : emailService.sendOrderStatusEmail(order.utilisateur, order, statut);
+        
         // Envoyer l'email de manière asynchrone (ne pas bloquer la réponse)
-        emailService.sendOrderStatusEmail(order.utilisateur, order, statut)
+        emailMethod
           .then(result => {
             if (result.success) {
-              console.log(`✅ Email de statut envoyé avec succès à ${order.utilisateur.email}`);
+              console.log(`✅ Email de statut envoyé avec succès à ${order.utilisateur.email} (${result.provider || 'Gmail'})`);
             } else {
               console.log(`⚠️ Erreur lors de l'envoi de l'email: ${result.error}`);
             }

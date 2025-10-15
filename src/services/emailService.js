@@ -1,9 +1,11 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 class EmailService {
   constructor() {
     this.transporter = null;
     this.initialized = false;
+    this.resend = null;
   }
 
   initializeTransporter() {
@@ -46,13 +48,34 @@ class EmailService {
     return this.transporter;
   }
 
+  initializeResend() {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('⚠️ Service Resend non configuré. RESEND_API_KEY manquant.');
+      return null;
+    }
+
+    if (!this.resend) {
+      this.resend = new Resend(process.env.RESEND_API_KEY);
+      console.log('✅ Service Resend initialisé avec succès');
+    }
+
+    return this.resend;
+  }
+
   async sendWelcomeEmail(user) {
     try {
       console.log('📧 Tentative d\'envoi email de bienvenue à:', user.email);
       console.log('📧 Variables email:', {
         EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
-        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant',
+        RESEND_API_KEY: process.env.RESEND_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
+      
+      // Utiliser Resend si disponible (plus fiable)
+      if (process.env.RESEND_API_KEY) {
+        console.log('📧 [Resend] API Key détectée - Utilisation de Resend');
+        // Note: Les méthodes Resend sont appelées depuis les routes spécifiques
+      }
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -618,8 +641,15 @@ Boutique de vêtements tendance
       console.log('📧 Tentative d\'envoi email de statut à:', user.email, 'Statut:', newStatus);
       console.log('📧 Variables email:', {
         EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
-        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant',
+        RESEND_API_KEY: process.env.RESEND_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
+      
+      // Utiliser Resend si disponible (plus fiable)
+      if (process.env.RESEND_API_KEY) {
+        console.log('📧 [Resend] API Key détectée - Utilisation de Resend');
+        // Note: Les méthodes Resend sont appelées depuis les routes spécifiques
+      }
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -1040,6 +1070,71 @@ Style, Qualité, Innovation
 Vous recevez cet email concernant votre commande #${order.numeroCommande}
 Merci de votre confiance !
     `;
+  }
+
+  // Méthodes Resend
+  async sendWelcomeEmailResend(user) {
+    try {
+      console.log('📧 [Resend] Tentative d\'envoi email de bienvenue à:', user.email);
+      
+      const resend = this.initializeResend();
+      if (!resend) {
+        return { success: false, error: 'Service Resend non configuré' };
+      }
+
+      const { data, error } = await resend.emails.send({
+        from: 'AYNEXT Boutique <onboarding@resend.dev>',
+        to: [user.email],
+        subject: '🎉 Bienvenue chez AYNEXT !',
+        html: this.generateWelcomeEmailHTML(user),
+        text: this.generateWelcomeEmailText(user)
+      });
+
+      if (error) {
+        console.error('❌ [Resend] Erreur lors de l\'envoi de l\'email de bienvenue:', error);
+        return { success: false, error: error.message };
+      }
+
+      console.log('✅ [Resend] Email de bienvenue envoyé avec succès à:', user.email);
+      console.log('📧 [Resend] Email ID:', data.id);
+      return { success: true, emailId: data.id, provider: 'Resend' };
+    } catch (error) {
+      console.error('❌ [Resend] Erreur lors de l\'envoi de l\'email de bienvenue:', error.message);
+      return { success: false, error: error.message, provider: 'Resend' };
+    }
+  }
+
+  async sendOrderStatusEmailResend(user, order, newStatus) {
+    try {
+      console.log('📧 [Resend] Tentative d\'envoi email de statut à:', user.email, 'Statut:', newStatus);
+      
+      const resend = this.initializeResend();
+      if (!resend) {
+        return { success: false, error: 'Service Resend non configuré' };
+      }
+
+      const statusInfo = this.getStatusInfo(newStatus);
+
+      const { data, error } = await resend.emails.send({
+        from: 'AYNEXT Boutique <onboarding@resend.dev>',
+        to: [user.email],
+        subject: `${statusInfo.emoji} ${statusInfo.subject} - Commande #${order.numeroCommande}`,
+        html: this.generateOrderStatusEmailHTML(user, order, newStatus, statusInfo),
+        text: this.generateOrderStatusEmailText(user, order, newStatus, statusInfo)
+      });
+
+      if (error) {
+        console.error('❌ [Resend] Erreur lors de l\'envoi de l\'email de statut:', error);
+        return { success: false, error: error.message };
+      }
+
+      console.log('✅ [Resend] Email de statut envoyé avec succès à:', user.email);
+      console.log('📧 [Resend] Email ID:', data.id);
+      return { success: true, emailId: data.id, provider: 'Resend' };
+    } catch (error) {
+      console.error('❌ [Resend] Erreur lors de l\'envoi de l\'email de statut:', error.message);
+      return { success: false, error: error.message, provider: 'Resend' };
+    }
   }
 }
 
