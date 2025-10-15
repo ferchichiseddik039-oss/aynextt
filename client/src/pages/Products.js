@@ -24,17 +24,17 @@ const ProductCard = ({ product, onAddToCart, onCustomize }) => {
 
   const handleCardClick = () => {
     // Navigation vers la page de détail du produit
-    window.location.href = `/product/${product._id}`;
+    window.location.href = `/aynextt/product/${product._id}`;
   };
 
   return (
     <div className="product-card" onClick={handleCardClick}>
       <div className="product-image">
         <img 
-          src={product?.images?.[0]?.url || '/placeholder-product.jpg'} 
+          src={product?.images?.[0]?.url || '/aynextt/placeholder-product.jpg'} 
           alt={product?.images?.[0]?.alt || product?.nom || 'Produit'}
           onError={(e) => {
-            e.target.src = '/placeholder-product.jpg';
+            e.target.src = '/aynextt/placeholder-product.jpg';
           }}
         />
         <div className="product-actions">

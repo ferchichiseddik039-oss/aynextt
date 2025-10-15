@@ -169,10 +169,10 @@ const ProductDetail = () => {
         <div className="product-gallery">
           <div className="main-image">
             <img 
-              src={product.images[activeImage]?.url || '/placeholder-product.jpg'} 
+              src={product.images[activeImage]?.url || '/aynextt/placeholder-product.jpg'} 
               alt={product.images[activeImage]?.alt || product.nom}
               onError={(e) => {
-                e.target.src = '/placeholder-product.jpg';
+                e.target.src = '/aynextt/placeholder-product.jpg';
               }}
             />
             {product.prixPromo && (
@@ -194,7 +194,7 @@ const ProductDetail = () => {
                     src={image?.url || image} 
                     alt={image?.alt || `${product.nom} - Image ${index + 1}`}
                     onError={(e) => {
-                      e.target.src = '/placeholder-product.jpg';
+                      e.target.src = '/aynextt/placeholder-product.jpg';
                     }}
                   />
                 </div>
@@ -414,10 +414,10 @@ const RelatedProductCard = ({ product }) => {
     <div className="related-product-card" onClick={() => navigate(`/product/${product._id}`)}>
       <div className="product-image">
         <img 
-          src={product.images[0]?.url || '/placeholder-product.jpg'} 
+          src={product.images[0]?.url || '/aynextt/placeholder-product.jpg'} 
           alt={product.images[0]?.alt || product.nom}
           onError={(e) => {
-            e.target.src = '/placeholder-product.jpg';
+            e.target.src = '/aynextt/placeholder-product.jpg';
           }}
         />
       </div>
