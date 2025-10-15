@@ -17,7 +17,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Créer la connexion Socket.IO
-    const socketUrl = process.env.NODE_ENV === 'production' 
+    const socketUrl = window.location.hostname.includes('github.io')
       ? 'https://aynextt.onrender.com' 
       : (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5001');
     

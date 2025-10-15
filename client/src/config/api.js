@@ -1,5 +1,5 @@
 // Configuration API pour Render (production) ou local (développement)
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
+const API_BASE_URL = window.location.hostname.includes('github.io')
   ? 'https://aynextt.onrender.com/api'  // URL de votre backend Render
   : '/api';  // Pour le développement local
 
