@@ -29,9 +29,9 @@ class EmailService {
       tls: {
         rejectUnauthorized: false // Nécessaire pour certains environnements
       },
-      connectionTimeout: 5000,  // 5 secondes
-      greetingTimeout: 5000,    // 5 secondes
-      socketTimeout: 10000      // 10 secondes
+      connectionTimeout: 15000, // 15 secondes
+      greetingTimeout: 10000,   // 10 secondes
+      socketTimeout: 20000      // 20 secondes
     });
 
     this.initialized = true;
@@ -66,11 +66,11 @@ class EmailService {
 
       console.log('📧 Tentative d\'envoi d\'email de bienvenue à:', user.email);
       
-      // Timeout de 10 secondes pour une réponse rapide
+      // Timeout de 25 secondes pour laisser le temps à Gmail
       const result = await Promise.race([
         transporter.sendMail(mailOptions),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout email (10s)')), 10000)
+          setTimeout(() => reject(new Error('Timeout email (25s)')), 25000)
         )
       ]);
       
@@ -620,11 +620,11 @@ Boutique de vêtements tendance
 
       console.log(`📧 Envoi d'email de statut de commande à ${user.email} (${newStatus})`);
       
-      // Timeout de 10 secondes pour une réponse rapide
+      // Timeout de 25 secondes pour laisser le temps à Gmail
       const result = await Promise.race([
         transporter.sendMail(mailOptions),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout email (10s)')), 10000)
+          setTimeout(() => reject(new Error('Timeout email (25s)')), 25000)
         )
       ]);
       
