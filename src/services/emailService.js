@@ -17,7 +17,7 @@ class EmailService {
       return null;
     }
 
-    // Configuration Gmail optimisée pour éviter les timeouts
+    // Configuration Gmail ultra-optimisée pour Render
     this.transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
@@ -28,16 +28,17 @@ class EmailService {
       },
       tls: {
         rejectUnauthorized: false,
-        ciphers: 'SSLv3'
+        ciphers: 'SSLv3',
+        secureProtocol: 'TLSv1_2_method'
       },
-      connectionTimeout: 30000, // 30 secondes
-      greetingTimeout: 15000,   // 15 secondes
-      socketTimeout: 45000,     // 45 secondes
+      connectionTimeout: 60000, // 60 secondes
+      greetingTimeout: 30000,   // 30 secondes
+      socketTimeout: 90000,     // 90 secondes
       pool: true,               // Utiliser le pool de connexions
       maxConnections: 1,        // Une seule connexion
-      maxMessages: 3,           // Max 3 emails par connexion
-      rateDelta: 1000,          // Attendre 1 seconde entre les emails
-      rateLimit: 5              // Max 5 emails par minute
+      maxMessages: 1,           // 1 email par connexion (plus fiable)
+      rateDelta: 2000,          // Attendre 2 secondes entre les emails
+      rateLimit: 3              // Max 3 emails par minute (plus conservateur)
     });
 
     this.initialized = true;
@@ -70,17 +71,33 @@ class EmailService {
 
       console.log('📧 Tentative d\'envoi d\'email de bienvenue à:', user.email);
       
-      // Timeout de 25 secondes pour laisser le temps à Gmail
-      const result = await Promise.race([
-        transporter.sendMail(mailOptions),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout email (25s)')), 25000)
-        )
-      ]);
+      // Stratégie de retry avec timeout étendu
+      let lastError;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          console.log(`📧 Tentative ${attempt}/2 d'envoi email de bienvenue`);
+          
+          const result = await Promise.race([
+            transporter.sendMail(mailOptions),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error(`Timeout email (60s) - tentative ${attempt}`)), 60000)
+            )
+          ]);
+          
+          console.log(`✅ Email de bienvenue envoyé avec succès à la tentative ${attempt}`);
+          return { success: true, messageId: result.messageId, attempts: attempt };
+        } catch (error) {
+          lastError = error;
+          console.log(`❌ Tentative ${attempt} échouée:`, error.message);
+          
+          if (attempt < 2) {
+            console.log(`⏳ Attente 5 secondes avant la tentative ${attempt + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          }
+        }
+      }
       
-      console.log('✅ Email de bienvenue envoyé avec succès à:', user.email);
-      console.log('📧 Message ID:', result.messageId);
-      return { success: true, messageId: result.messageId };
+      throw lastError;
     } catch (error) {
       console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', error.message);
       console.log('⚠️ La connexion OAuth continue malgré l\'erreur email');
@@ -623,18 +640,33 @@ Boutique de vêtements tendance
 
       console.log(`📧 Envoi d'email de statut de commande à ${user.email} (${newStatus})`);
       
-      // Timeout de 25 secondes pour laisser le temps à Gmail
-      const result = await Promise.race([
-        transporter.sendMail(mailOptions),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout email (25s)')), 25000)
-        )
-      ]);
+      // Stratégie de retry avec timeout étendu
+      let lastError;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          console.log(`📧 Tentative ${attempt}/2 d'envoi email de statut`);
+          
+          const result = await Promise.race([
+            transporter.sendMail(mailOptions),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error(`Timeout email (60s) - tentative ${attempt}`)), 60000)
+            )
+          ]);
+          
+          console.log(`✅ Email de statut envoyé avec succès à la tentative ${attempt}`);
+          return { success: true, messageId: result.messageId, attempts: attempt };
+        } catch (error) {
+          lastError = error;
+          console.log(`❌ Tentative ${attempt} échouée:`, error.message);
+          
+          if (attempt < 2) {
+            console.log(`⏳ Attente 5 secondes avant la tentative ${attempt + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          }
+        }
+      }
       
-      console.log(`✅ Email de statut envoyé avec succès à: ${user.email}`);
-      console.log('📧 Message ID:', result.messageId);
-      
-      return { success: true, messageId: result.messageId };
+      throw lastError;
     } catch (error) {
       console.error('❌ Erreur lors de l\'envoi de l\'email de statut:', error.message);
       return { success: false, error: error.message };
