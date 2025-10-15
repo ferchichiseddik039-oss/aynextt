@@ -22,7 +22,7 @@ const ProductCard = ({ product, onAddToCart, onCustomize }) => {
 
   const handleCardClick = () => {
     // Navigation vers la page de détail du produit
-    window.location.href = `/product/${product._id}`;
+    window.location.href = `/#/product/${product._id}`;
   };
 
   return (
