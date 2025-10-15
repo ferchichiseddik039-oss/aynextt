@@ -41,7 +41,10 @@ export const OrdersProvider = ({ children }) => {
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes max
       
       try {
-        const response = await fetch('http://localhost:5001/api/orders', {
+        const apiUrl = window.location.hostname.includes('github.io')
+          ? 'https://aynextt.onrender.com/api'
+          : 'http://localhost:5001/api';
+        const response = await fetch(`${apiUrl}/orders`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

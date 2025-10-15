@@ -83,10 +83,14 @@ const Login = () => {
   };
 
   const handleSocialLogin = (provider) => {
+    const apiUrl = window.location.hostname.includes('github.io')
+      ? 'https://aynextt.onrender.com/api'
+      : 'http://localhost:5001/api';
+    
     if (provider === 'Google') {
-      window.location.href = 'http://localhost:5001/api/auth/google';
+      window.location.href = `${apiUrl}/auth/google`;
     } else if (provider === 'Facebook') {
-      window.location.href = 'http://localhost:5001/api/auth/facebook';
+      window.location.href = `${apiUrl}/auth/facebook`;
     }
   };
 

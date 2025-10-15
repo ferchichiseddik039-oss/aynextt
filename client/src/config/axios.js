@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 // Configuration API - utilise l'URL complète pour éviter les problèmes de proxy
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = window.location.hostname.includes('github.io')
+  ? 'https://aynextt.onrender.com/api'
+  : (process.env.REACT_APP_API_URL || 'http://localhost:5001/api');
 
 // Configuration de base pour axios
 const api = axios.create({
