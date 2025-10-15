@@ -411,7 +411,7 @@ const RelatedProductCard = ({ product }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="related-product-card" onClick={() => window.location.href = `/#/product/${product._id}`}>
+    <div className="related-product-card" onClick={() => window.location.href = `/aynextt/#/product/${product._id}`}>
       <div className="product-image">
         <img 
           src={product.images[0]?.url || '/aynextt/placeholder-product.jpg'} 
