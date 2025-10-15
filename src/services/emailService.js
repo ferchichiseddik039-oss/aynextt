@@ -1083,7 +1083,7 @@ Merci de votre confiance !
       }
 
       const { data, error } = await resend.emails.send({
-        from: 'AYNEXT Boutique <ayoubbenromdan8@gmail.com>',
+        from: 'AYNEXT Boutique <onboarding@resend.dev>',
         to: [user.email],
         subject: '🎉 Bienvenue chez AYNEXT !',
         html: this.generateWelcomeEmailHTML(user),
@@ -1116,7 +1116,7 @@ Merci de votre confiance !
       const statusInfo = this.getStatusInfo(newStatus);
 
       const { data, error } = await resend.emails.send({
-        from: 'AYNEXT Boutique <ayoubbenromdan8@gmail.com>',
+        from: 'AYNEXT Boutique <onboarding@resend.dev>',
         to: [user.email],
         subject: `${statusInfo.emoji} ${statusInfo.subject} - Commande #${order.numeroCommande}`,
         html: this.generateOrderStatusEmailHTML(user, order, newStatus, statusInfo),
