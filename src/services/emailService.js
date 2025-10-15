@@ -47,11 +47,7 @@ class EmailService {
         EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // TEMPORAIRE : Désactiver les emails pour éviter les timeouts
-      if (process.env.NODE_ENV === 'production') {
-        console.log('⚠️ Emails temporairement désactivés en production (timeout SMTP)');
-        return { success: true, message: 'Email désactivé temporairement' };
-      }
+      // Configuration SMTP optimisée activée
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -69,7 +65,15 @@ class EmailService {
       };
 
       console.log('📧 Tentative d\'envoi d\'email de bienvenue à:', user.email);
-      const result = await transporter.sendMail(mailOptions);
+      
+      // Timeout de 30 secondes pour éviter les blocages
+      const result = await Promise.race([
+        transporter.sendMail(mailOptions),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout email (30s)')), 30000)
+        )
+      ]);
+      
       console.log('✅ Email de bienvenue envoyé avec succès à:', user.email);
       console.log('📧 Message ID:', result.messageId);
       return { success: true, messageId: result.messageId };
@@ -595,11 +599,7 @@ Boutique de vêtements tendance
         EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // TEMPORAIRE : Désactiver les emails pour éviter les timeouts
-      if (process.env.NODE_ENV === 'production') {
-        console.log('⚠️ Emails temporairement désactivés en production (timeout SMTP)');
-        return { success: true, message: 'Email désactivé temporairement' };
-      }
+      // Configuration SMTP optimisée activée
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -619,7 +619,15 @@ Boutique de vêtements tendance
       };
 
       console.log(`📧 Envoi d'email de statut de commande à ${user.email} (${newStatus})`);
-      const result = await transporter.sendMail(mailOptions);
+      
+      // Timeout de 30 secondes pour éviter les blocages
+      const result = await Promise.race([
+        transporter.sendMail(mailOptions),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout email (30s)')), 30000)
+        )
+      ]);
+      
       console.log(`✅ Email de statut envoyé avec succès à: ${user.email}`);
       console.log('📧 Message ID:', result.messageId);
       
