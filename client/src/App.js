@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -37,72 +37,6 @@ const AppContent = () => {
   
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Gérer le chargement initial pour GitHub Pages
-  useEffect(() => {
-    const handleInitialLoad = () => {
-      // Vérifier si on est sur GitHub Pages et si le contenu est chargé
-      if (window.location.hostname.includes('github.io')) {
-        const checkContent = () => {
-          const rootElement = document.getElementById('root');
-          if (rootElement && rootElement.children.length > 0) {
-            setIsLoading(false);
-          } else {
-            // Si pas de contenu après 2 secondes, forcer le rechargement
-            setTimeout(() => {
-              if (document.getElementById('root').children.length === 0) {
-                window.location.reload();
-              }
-            }, 2000);
-          }
-        };
-        
-        // Vérifier immédiatement et après un délai
-        checkContent();
-        setTimeout(checkContent, 1000);
-      } else {
-        setIsLoading(false);
-      }
-    };
-
-    handleInitialLoad();
-  }, []);
-
-  // Afficher un loader pendant le chargement initial
-  if (isLoading && window.location.hostname.includes('github.io')) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            border: '4px solid rgba(255, 255, 255, 0.3)',
-            borderTop: '4px solid white',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            animation: 'spin 1s linear infinite',
-            margin: '20px auto'
-          }}></div>
-          <h2>🚀 AYNEXT</h2>
-          <p>Chargement de votre boutique...</p>
-        </div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
-  }
 
   return (
     <div className="App min-h-screen flex flex-col">
