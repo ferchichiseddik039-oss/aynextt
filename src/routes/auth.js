@@ -333,7 +333,10 @@ router.get('/google/callback',
 
       console.log('✅ Token JWT créé, redirection vers le frontend');
       // Rediriger vers le frontend avec le token
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/oauth-success?token=${token}`);
+      const clientUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://ferchichiseddik039-oss.github.io/aynextt'
+        : (process.env.CLIENT_URL || 'http://localhost:3000');
+      res.redirect(`${clientUrl}/#/oauth-success?token=${token}`);
     } catch (error) {
       console.error('❌ Erreur lors de la connexion Google callback:', error);
       console.error('📋 Détails de l\'erreur:', {
@@ -383,10 +386,16 @@ router.get('/facebook/callback',
       );
 
       // Rediriger vers le frontend avec le token
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/oauth-success?token=${token}`);
+      const clientUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://ferchichiseddik039-oss.github.io/aynextt'
+        : (process.env.CLIENT_URL || 'http://localhost:3000');
+      res.redirect(`${clientUrl}/#/oauth-success?token=${token}`);
     } catch (error) {
       console.error('Erreur lors de la connexion Facebook:', error);
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=oauth_error`);
+      const clientUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://ferchichiseddik039-oss.github.io/aynextt'
+        : (process.env.CLIENT_URL || 'http://localhost:3000');
+      res.redirect(`${clientUrl}/#/login?error=oauth_error`);
     }
   }
 );
