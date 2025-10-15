@@ -1,5 +1,4 @@
 const nodemailer = require('nodemailer');
-const sgMail = require('@sendgrid/mail');
 
 class EmailService {
   constructor() {
@@ -18,21 +17,27 @@ class EmailService {
       return null;
     }
 
-    // Configuration pour Gmail optimisée pour Render
+    // Configuration Gmail optimisée pour éviter les timeouts
     this.transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 587, // Port 587 pour TLS (plus compatible avec Render)
-      secure: false, // false pour port 587
+      port: 587,
+      secure: false, // TLS
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
       tls: {
-        rejectUnauthorized: false // Nécessaire pour certains environnements
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
       },
-      connectionTimeout: 15000, // 15 secondes
-      greetingTimeout: 10000,   // 10 secondes
-      socketTimeout: 20000      // 20 secondes
+      connectionTimeout: 30000, // 30 secondes
+      greetingTimeout: 15000,   // 15 secondes
+      socketTimeout: 45000,     // 45 secondes
+      pool: true,               // Utiliser le pool de connexions
+      maxConnections: 1,        // Une seule connexion
+      maxMessages: 3,           // Max 3 emails par connexion
+      rateDelta: 1000,          // Attendre 1 seconde entre les emails
+      rateLimit: 5              // Max 5 emails par minute
     });
 
     this.initialized = true;
@@ -45,17 +50,8 @@ class EmailService {
       console.log('📧 Tentative d\'envoi email de bienvenue à:', user.email);
       console.log('📧 Variables email:', {
         EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
-        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant',
-        SENDGRID_API_KEY: process.env.SENDGRID_API_KEY ? '✅ Configuré' : '❌ Manquant'
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
       });
-      
-      // Essayer SendGrid d'abord (plus fiable sur Render)
-      if (process.env.SENDGRID_API_KEY) {
-        return await this.sendWelcomeEmailSendGrid(user);
-      }
-      
-      // Fallback vers Gmail SMTP
-      console.log('📧 Utilisation de Gmail SMTP (SendGrid non configuré)');
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -92,28 +88,6 @@ class EmailService {
     }
   }
 
-  async sendWelcomeEmailSendGrid(user) {
-    try {
-      console.log('📧 [SendGrid] Envoi email de bienvenue à:', user.email);
-      
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      
-      const msg = {
-        to: user.email,
-        from: process.env.EMAIL_USER || 'noreply@aynext.com',
-        subject: '🎉 Bienvenue chez AYNEXT !',
-        html: this.generateWelcomeEmailHTML(user),
-        text: this.generateWelcomeEmailText(user)
-      };
-
-      await sgMail.send(msg);
-      console.log('✅ [SendGrid] Email de bienvenue envoyé avec succès à:', user.email);
-      return { success: true, provider: 'SendGrid' };
-    } catch (error) {
-      console.error('❌ [SendGrid] Erreur lors de l\'envoi de l\'email de bienvenue:', error.message);
-      return { success: false, error: error.message, provider: 'SendGrid' };
-    }
-  }
 
   generateWelcomeEmailHTML(user) {
     return `
@@ -627,17 +601,8 @@ Boutique de vêtements tendance
       console.log('📧 Tentative d\'envoi email de statut à:', user.email, 'Statut:', newStatus);
       console.log('📧 Variables email:', {
         EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
-        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant',
-        SENDGRID_API_KEY: process.env.SENDGRID_API_KEY ? '✅ Configuré' : '❌ Manquant'
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
       });
-      
-      // Essayer SendGrid d'abord (plus fiable sur Render)
-      if (process.env.SENDGRID_API_KEY) {
-        return await this.sendOrderStatusEmailSendGrid(user, order, newStatus);
-      }
-      
-      // Fallback vers Gmail SMTP
-      console.log('📧 Utilisation de Gmail SMTP (SendGrid non configuré)');
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -676,30 +641,6 @@ Boutique de vêtements tendance
     }
   }
 
-  async sendOrderStatusEmailSendGrid(user, order, newStatus) {
-    try {
-      console.log('📧 [SendGrid] Envoi email de statut à:', user.email, 'Statut:', newStatus);
-      
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      
-      const statusInfo = this.getStatusInfo(newStatus);
-      
-      const msg = {
-        to: user.email,
-        from: process.env.EMAIL_USER || 'noreply@aynext.com',
-        subject: `${statusInfo.emoji} ${statusInfo.subject} - Commande #${order.numeroCommande}`,
-        html: this.generateOrderStatusEmailHTML(user, order, newStatus, statusInfo),
-        text: this.generateOrderStatusEmailText(user, order, newStatus, statusInfo)
-      };
-
-      await sgMail.send(msg);
-      console.log('✅ [SendGrid] Email de statut envoyé avec succès à:', user.email);
-      return { success: true, provider: 'SendGrid' };
-    } catch (error) {
-      console.error('❌ [SendGrid] Erreur lors de l\'envoi de l\'email de statut:', error.message);
-      return { success: false, error: error.message, provider: 'SendGrid' };
-    }
-  }
 
   getStatusInfo(status) {
     const statusMap = {
