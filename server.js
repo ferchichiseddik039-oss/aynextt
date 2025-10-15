@@ -32,6 +32,17 @@ const PORT = process.env.PORT || 5001;
 
 let mongoConnected = false;
 
+// Endpoint de santé pour Render
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoConnected ? 'connected' : 'disconnected'
+  });
+});
+
 // Fonction utilitaire pour gérer les erreurs MongoDB
 const handleMongoError = (error, res, fallbackData = null) => {
   console.error('❌ Erreur MongoDB:', error);
