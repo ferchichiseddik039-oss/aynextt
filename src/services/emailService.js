@@ -74,7 +74,7 @@ class EmailService {
       // Utiliser Resend si disponible (plus fiable)
       if (process.env.RESEND_API_KEY) {
         console.log('📧 [Resend] API Key détectée - Utilisation de Resend');
-        // Note: Les méthodes Resend sont appelées depuis les routes spécifiques
+        return await this.sendWelcomeEmailResend(user);
       }
       
       // Initialiser le transporter de manière paresseuse
@@ -648,7 +648,7 @@ Boutique de vêtements tendance
       // Utiliser Resend si disponible (plus fiable)
       if (process.env.RESEND_API_KEY) {
         console.log('📧 [Resend] API Key détectée - Utilisation de Resend');
-        // Note: Les méthodes Resend sont appelées depuis les routes spécifiques
+        return await this.sendWelcomeEmailResend(user);
       }
       
       // Initialiser le transporter de manière paresseuse
