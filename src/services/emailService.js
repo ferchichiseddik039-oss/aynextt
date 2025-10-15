@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 class EmailService {
   constructor() {
@@ -44,10 +45,17 @@ class EmailService {
       console.log('📧 Tentative d\'envoi email de bienvenue à:', user.email);
       console.log('📧 Variables email:', {
         EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
-        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant',
+        SENDGRID_API_KEY: process.env.SENDGRID_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // Configuration SMTP optimisée activée
+      // Essayer SendGrid d'abord (plus fiable sur Render)
+      if (process.env.SENDGRID_API_KEY) {
+        return await this.sendWelcomeEmailSendGrid(user);
+      }
+      
+      // Fallback vers Gmail SMTP
+      console.log('📧 Utilisation de Gmail SMTP (SendGrid non configuré)');
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -81,6 +89,29 @@ class EmailService {
       console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', error.message);
       console.log('⚠️ La connexion OAuth continue malgré l\'erreur email');
       return { success: false, error: error.message };
+    }
+  }
+
+  async sendWelcomeEmailSendGrid(user) {
+    try {
+      console.log('📧 [SendGrid] Envoi email de bienvenue à:', user.email);
+      
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      
+      const msg = {
+        to: user.email,
+        from: process.env.EMAIL_USER || 'noreply@aynext.com',
+        subject: '🎉 Bienvenue chez AYNEXT !',
+        html: this.generateWelcomeEmailHTML(user),
+        text: this.generateWelcomeEmailText(user)
+      };
+
+      await sgMail.send(msg);
+      console.log('✅ [SendGrid] Email de bienvenue envoyé avec succès à:', user.email);
+      return { success: true, provider: 'SendGrid' };
+    } catch (error) {
+      console.error('❌ [SendGrid] Erreur lors de l\'envoi de l\'email de bienvenue:', error.message);
+      return { success: false, error: error.message, provider: 'SendGrid' };
     }
   }
 
@@ -596,10 +627,17 @@ Boutique de vêtements tendance
       console.log('📧 Tentative d\'envoi email de statut à:', user.email, 'Statut:', newStatus);
       console.log('📧 Variables email:', {
         EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
-        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant',
+        SENDGRID_API_KEY: process.env.SENDGRID_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // Configuration SMTP optimisée activée
+      // Essayer SendGrid d'abord (plus fiable sur Render)
+      if (process.env.SENDGRID_API_KEY) {
+        return await this.sendOrderStatusEmailSendGrid(user, order, newStatus);
+      }
+      
+      // Fallback vers Gmail SMTP
+      console.log('📧 Utilisation de Gmail SMTP (SendGrid non configuré)');
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -635,6 +673,31 @@ Boutique de vêtements tendance
     } catch (error) {
       console.error('❌ Erreur lors de l\'envoi de l\'email de statut:', error.message);
       return { success: false, error: error.message };
+    }
+  }
+
+  async sendOrderStatusEmailSendGrid(user, order, newStatus) {
+    try {
+      console.log('📧 [SendGrid] Envoi email de statut à:', user.email, 'Statut:', newStatus);
+      
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      
+      const statusInfo = this.getStatusInfo(newStatus);
+      
+      const msg = {
+        to: user.email,
+        from: process.env.EMAIL_USER || 'noreply@aynext.com',
+        subject: `${statusInfo.emoji} ${statusInfo.subject} - Commande #${order.numeroCommande}`,
+        html: this.generateOrderStatusEmailHTML(user, order, newStatus, statusInfo),
+        text: this.generateOrderStatusEmailText(user, order, newStatus, statusInfo)
+      };
+
+      await sgMail.send(msg);
+      console.log('✅ [SendGrid] Email de statut envoyé avec succès à:', user.email);
+      return { success: true, provider: 'SendGrid' };
+    } catch (error) {
+      console.error('❌ [SendGrid] Erreur lors de l\'envoi de l\'email de statut:', error.message);
+      return { success: false, error: error.message, provider: 'SendGrid' };
     }
   }
 
