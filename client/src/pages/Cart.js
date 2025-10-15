@@ -562,7 +562,11 @@ const CheckoutSection = ({ cart, total, shipping, onClose, onSuccess, getActiveP
 
       console.log('📤 Envoi des données de commande:', orderData);
 
-      const response = await fetch('/api/orders', {
+      const apiUrl = window.location.hostname.includes('github.io')
+        ? 'https://aynextt.onrender.com/api'
+        : 'http://localhost:5001/api';
+      
+      const response = await fetch(`${apiUrl}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
