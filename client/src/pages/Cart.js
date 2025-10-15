@@ -377,7 +377,7 @@ const CartItem = ({ item, onQuantityChange, onRemove, updating }) => {
           src={getImageSource()} 
           alt={getImageAlt()}
           onError={(e) => {
-            e.target.src = '/aynextt/placeholder-product.jpg';
+            e.target.src = '/placeholder-product.jpg';
           }}
         />
       </div>

@@ -17,7 +17,9 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Créer la connexion Socket.IO
-    const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5001';
+    const socketUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://aynextt.onrender.com' 
+      : (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5001');
     
     console.log('🔌 Initialisation WebSocket...');
     console.log('🔌 URL Socket:', socketUrl);

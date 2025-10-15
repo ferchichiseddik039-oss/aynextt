@@ -121,7 +121,7 @@ const Home = () => {
             <div className="flex justify-center">
               <div className="relative">
                 <img
-                  src="/aynextt/model.jpg"
+                  src="/model.jpg"
                   alt="Modèle avec vêtements"
                   className="w-full max-w-lg h-auto shadow-2xl"
                 />

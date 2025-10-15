@@ -32,7 +32,7 @@ const OrderItemImage = ({ article, isCustomItem }) => {
         src={getImageSource()} 
         alt={isCustomItem ? (article.nom || 'Hoodie personnalisé') : (article.produit?.nom || 'Produit')}
         onError={(e) => {
-          e.target.src = '/aynextt/logo-aynext.png';
+          e.target.src = '/logo-aynext.png';
         }}
         style={{
           maxWidth: '80px',
