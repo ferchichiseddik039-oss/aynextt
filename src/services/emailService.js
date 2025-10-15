@@ -12,8 +12,8 @@ class EmailService {
     }
 
     // Vérifier que les variables d'environnement sont disponibles
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.warn('⚠️ Service email non configuré. EMAIL_USER ou EMAIL_PASSWORD manquant.');
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn('⚠️ Service email non configuré. EMAIL_USER ou EMAIL_PASS manquant.');
       return null;
     }
 
@@ -24,7 +24,7 @@ class EmailService {
       secure: true, // true pour port 465
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        pass: process.env.EMAIL_PASS,
       }
     });
 
@@ -35,6 +35,12 @@ class EmailService {
 
   async sendWelcomeEmail(user) {
     try {
+      console.log('📧 Tentative d\'envoi email de bienvenue à:', user.email);
+      console.log('📧 Variables email:', {
+        EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
+      });
+      
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
       if (!transporter) {
@@ -571,6 +577,12 @@ Boutique de vêtements tendance
 
   async sendOrderStatusEmail(user, order, newStatus) {
     try {
+      console.log('📧 Tentative d\'envoi email de statut à:', user.email, 'Statut:', newStatus);
+      console.log('📧 Variables email:', {
+        EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
+        EMAIL_PASS: process.env.EMAIL_PASS ? '✅ Configuré' : '❌ Manquant'
+      });
+      
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
       if (!transporter) {
