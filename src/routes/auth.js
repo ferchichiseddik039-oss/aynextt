@@ -275,8 +275,7 @@ router.get('/google', (req, res, next) => {
     });
   }
   passport.authenticate('google', { 
-    scope: ['profile', 'email'],
-    prompt: 'select_account' // Force la sélection du compte à chaque fois
+    scope: ['profile', 'email']
   })(req, res, next);
 });
 
