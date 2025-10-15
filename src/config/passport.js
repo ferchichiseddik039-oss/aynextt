@@ -8,7 +8,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:5001/api/auth/google/callback",
+    callbackURL: process.env.NODE_ENV === 'production' 
+      ? "https://aynextt.onrender.com/api/auth/google/callback"
+      : "http://localhost:5001/api/auth/google/callback",
     accessType: 'online',  // Pas besoin de refresh token
     prompt: 'select_account'  // Force la sélection du compte
   }, async (accessToken, refreshToken, profile, done) => {
@@ -72,7 +74,9 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
     clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: "http://localhost:5001/api/auth/facebook/callback",
+    callbackURL: process.env.NODE_ENV === 'production' 
+      ? "https://aynextt.onrender.com/api/auth/facebook/callback"
+      : "http://localhost:5001/api/auth/facebook/callback",
     profileFields: ['id', 'emails', 'name']
   }, async (accessToken, refreshToken, profile, done) => {
     try {

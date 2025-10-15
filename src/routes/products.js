@@ -8,6 +8,17 @@ const emailService = require('../services/emailService');
 
 const router = express.Router();
 
+// Fonction pour corriger les URLs d'images
+const correctImageUrls = (product) => {
+  if (product.images && Array.isArray(product.images)) {
+    product.images = product.images.map(img => ({
+      ...img.toObject(),
+      url: img.url.startsWith('http') ? img.url : `https://aynextt.onrender.com${img.url}`
+    }));
+  }
+  return product;
+};
+
 // @route   GET /api/products
 // @desc    Obtenir tous les produits avec filtres
 // @access  Public
@@ -55,9 +66,12 @@ router.get('/', async (req, res) => {
 
     const total = await Product.countDocuments(filtres);
 
+    // Corriger les URLs d'images
+    const produitsAvecUrlsCorrigees = produits.map(correctImageUrls);
+
     res.json({
       success: true,
-      products: produits,
+      products: produitsAvecUrlsCorrigees,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -160,7 +174,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Produit non trouvé' });
     }
 
-    res.json(produit);
+    res.json(correctImageUrls(produit));
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
