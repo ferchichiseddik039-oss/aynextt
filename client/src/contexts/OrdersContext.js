@@ -168,7 +168,7 @@ export const OrdersProvider = ({ children }) => {
       console.log('📦 Mise à jour de commande reçue via WebSocket:', data);
       console.log('📦 Type de data.orderId:', typeof data.orderId, data.orderId);
       
-      // Envoyer l'email de statut via EmailJS
+      // ENVOYER L'EMAIL DE STATUT VIA EMAILJS - INDÉPENDAMMENT DE LA MISE À JOUR DES COMMANDES
       console.log('📧 [OrdersContext] Debug - Structure des données:', {
         hasData: !!data,
         hasOrderId: !!data?.orderId,
