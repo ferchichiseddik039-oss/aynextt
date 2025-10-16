@@ -162,6 +162,11 @@ export const OrdersProvider = ({ children }) => {
     }
 
     console.log('✅ WebSocket connecté - Configuration des écouteurs pour les commandes');
+    
+    // Attendre un peu pour s'assurer que la connexion est stable
+    setTimeout(() => {
+      console.log('🔌 Configuration des écouteurs après stabilisation de la connexion');
+    }, 1000);
 
     // Écouter les mises à jour de statut de commande
     const handleOrderStatusUpdate = async (data) => {
@@ -294,6 +299,7 @@ export const OrdersProvider = ({ children }) => {
 
     // S'abonner aux événements
     socket.on('order-status-changed', handleOrderStatusUpdate);
+    socket.on('order_status_updated', handleOrderStatusUpdate); // Fallback pour l'ancien événement
     socket.on('new-order', handleNewOrder);
 
     console.log('📡 Écouteurs WebSocket configurés pour les commandes');
