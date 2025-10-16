@@ -8,6 +8,7 @@ import { SettingsProvider } from './contexts/SettingsContext';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import EmailNotificationHandler from './components/EmailNotificationHandler';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import GenderPage from './pages/GenderPage';
@@ -41,6 +42,7 @@ const AppContent = () => {
   return (
     <div className="App min-h-screen flex flex-col">
       <MaintenanceMode />
+      <EmailNotificationHandler />
       {!isAdminRoute && <Header />}
       <main className="flex-1">
         <Routes>

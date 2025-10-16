@@ -72,11 +72,8 @@ class EmailService {
         RESEND_API_KEY: process.env.RESEND_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // Priorité : EmailJS (le plus simple), puis Resend, puis Gmail
-      if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_PUBLIC_KEY) {
-        console.log('📧 [EmailJS] Configuration détectée - Utilisation d\'EmailJS');
-        return await emailServiceEmailJS.sendWelcomeEmail(user);
-      }
+      // EmailJS est maintenant géré côté frontend
+      console.log('📧 [Backend] EmailJS géré côté frontend - Utilisation des services backend');
       
       if (process.env.RESEND_API_KEY) {
         console.log('📧 [Resend] API Key détectée - Utilisation de Resend');
@@ -653,11 +650,8 @@ Boutique de vêtements tendance
         RESEND_API_KEY: process.env.RESEND_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // Priorité : EmailJS (le plus simple), puis Resend, puis Gmail
-      if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_PUBLIC_KEY) {
-        console.log('📧 [EmailJS] Configuration détectée - Utilisation d\'EmailJS');
-        return await emailServiceEmailJS.sendWelcomeEmail(user);
-      }
+      // EmailJS est maintenant géré côté frontend
+      console.log('📧 [Backend] EmailJS géré côté frontend - Utilisation des services backend');
       
       if (process.env.RESEND_API_KEY) {
         console.log('📧 [Resend] API Key détectée - Utilisation de Resend');

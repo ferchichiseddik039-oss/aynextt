@@ -316,28 +316,26 @@ router.put('/:id/statut', [auth, admin], [
       global.emitStatsUpdate(io);
     }
 
-    // Envoyer un email au client pour le nouveau statut
+    // Notifier le frontend pour envoyer l'email (EmailJS côté client)
     try {
       if (order.utilisateur && order.utilisateur.email) {
-        console.log(`📧 Envoi d'email de notification de statut au client: ${order.utilisateur.email}`);
+        console.log(`📧 Notification de changement de statut pour: ${order.utilisateur.email}`);
+        console.log(`📧 Le frontend enverra l'email via EmailJS`);
         
-        // Utiliser Resend si disponible, sinon Gmail
-        const emailMethod = process.env.RESEND_API_KEY 
-          ? emailService.sendOrderStatusEmailResend(order.utilisateur, order, statut)
-          : emailService.sendOrderStatusEmail(order.utilisateur, order, statut);
-        
-        // Envoyer l'email de manière asynchrone (ne pas bloquer la réponse)
-        emailMethod
-          .then(result => {
-            if (result.success) {
-              console.log(`✅ Email de statut envoyé avec succès à ${order.utilisateur.email} (${result.provider || 'Gmail'})`);
-            } else {
-              console.log(`⚠️ Erreur lors de l'envoi de l'email: ${result.error}`);
-            }
-          })
-          .catch(error => {
-            console.error(`❌ Erreur lors de l'envoi de l'email de statut:`, error.message);
+        // Envoyer les données via WebSocket pour que le frontend puisse envoyer l'email
+        if (io) {
+          io.emit('order-status-changed', {
+            orderId: order._id,
+            userId: order.utilisateur._id,
+            userEmail: order.utilisateur.email,
+            userName: `${order.utilisateur.prenom} ${order.utilisateur.nom}`,
+            newStatus: statut,
+            orderNumber: order.numeroCommande,
+            orderTotal: order.total,
+            orderDate: order.dateCreation
           });
+          console.log('🔌 Données envoyées via WebSocket pour envoi d\'email côté frontend');
+        }
       } else {
         console.log('⚠️ Pas d\'email utilisateur disponible pour la notification');
       }
