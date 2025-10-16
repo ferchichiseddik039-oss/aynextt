@@ -324,7 +324,7 @@ router.put('/:id/statut', [auth, admin], [
         
         // Envoyer les données via WebSocket pour que le frontend puisse envoyer l'email
         if (io) {
-          io.emit('order-status-updated', {
+          io.emit('order-status-changed', {
             orderId: order._id,
             userId: order.utilisateur._id,
             userEmail: order.utilisateur.email,
@@ -332,18 +332,7 @@ router.put('/:id/statut', [auth, admin], [
             newStatus: statut,
             orderNumber: order.numeroCommande,
             orderTotal: order.total,
-            orderDate: order.dateCreation,
-            order: {
-              _id: order._id,
-              numeroCommande: order.numeroCommande,
-              total: order.total,
-              dateCreation: order.dateCreation,
-              utilisateur: {
-                email: order.utilisateur.email,
-                prenom: order.utilisateur.prenom,
-                nom: order.utilisateur.nom
-              }
-            }
+            orderDate: order.dateCreation
           });
           console.log('🔌 Données envoyées via WebSocket pour envoi d\'email côté frontend');
         }

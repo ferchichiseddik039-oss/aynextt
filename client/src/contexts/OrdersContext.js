@@ -285,7 +285,7 @@ export const OrdersProvider = ({ children }) => {
     };
 
     // S'abonner aux événements
-    socket.on('order-status-updated', handleOrderStatusUpdate);
+    socket.on('order-status-changed', handleOrderStatusUpdate);
     socket.on('new-order', handleNewOrder);
 
     console.log('📡 Écouteurs WebSocket configurés pour les commandes');
@@ -293,7 +293,7 @@ export const OrdersProvider = ({ children }) => {
     // Nettoyer les écouteurs lors du démontage
     return () => {
       console.log('🧹 Nettoyage des écouteurs WebSocket des commandes');
-      socket.off('order-status-updated', handleOrderStatusUpdate);
+      socket.off('order-status-changed', handleOrderStatusUpdate);
       socket.off('new-order', handleNewOrder);
     };
   }, [socket, isConnected]);
