@@ -80,7 +80,7 @@ const TestHoodie = () => {
             width: '100%',
             height: '400px',
             position: 'relative',
-            backgroundImage: `url('/hoodie-base.jpg')`,
+            backgroundImage: `url('/aynextt/hoodie-base.jpg')`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center'
