@@ -402,8 +402,8 @@ export default function HoodieCustomizer() {
                   <img
                     src={
                       color === "#000000" 
-                        ? (logoPosition === "back" ? "/hoodie-dos-noir.png" : "/hoodie-noir.jpg")
-                        : (logoPosition === "back" ? "/hoodie-dos.jpg" : "/hoodie-blanc.jpg")
+                        ? (logoPosition === "back" ? "/aynextt/hoodie-dos-noir.png" : "/aynextt/hoodie-noir.jpg")
+                        : (logoPosition === "back" ? "/aynextt/hoodie-dos.jpg" : "/aynextt/hoodie-blanc.jpg")
                     }
                     alt="Hoodie"
                     style={{ 
