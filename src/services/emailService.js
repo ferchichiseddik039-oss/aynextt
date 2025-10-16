@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
+const emailServiceEmailJS = require('./emailServiceEmailJS');
 
 class EmailService {
   constructor() {
@@ -71,11 +72,18 @@ class EmailService {
         RESEND_API_KEY: process.env.RESEND_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // Utiliser Resend si disponible (plus fiable)
+      // Priorité : EmailJS (le plus simple), puis Resend, puis Gmail
+      if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_PUBLIC_KEY) {
+        console.log('📧 [EmailJS] Configuration détectée - Utilisation d\'EmailJS');
+        return await emailServiceEmailJS.sendWelcomeEmail(user);
+      }
+      
       if (process.env.RESEND_API_KEY) {
         console.log('📧 [Resend] API Key détectée - Utilisation de Resend');
         return await this.sendWelcomeEmailResend(user);
       }
+      
+      console.log('📧 [Gmail] Utilisation de Gmail SMTP (autres services non configurés)');
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -645,11 +653,18 @@ Boutique de vêtements tendance
         RESEND_API_KEY: process.env.RESEND_API_KEY ? '✅ Configuré' : '❌ Manquant'
       });
       
-      // Utiliser Resend si disponible (plus fiable)
+      // Priorité : EmailJS (le plus simple), puis Resend, puis Gmail
+      if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_PUBLIC_KEY) {
+        console.log('📧 [EmailJS] Configuration détectée - Utilisation d\'EmailJS');
+        return await emailServiceEmailJS.sendWelcomeEmail(user);
+      }
+      
       if (process.env.RESEND_API_KEY) {
         console.log('📧 [Resend] API Key détectée - Utilisation de Resend');
         return await this.sendWelcomeEmailResend(user);
       }
+      
+      console.log('📧 [Gmail] Utilisation de Gmail SMTP (autres services non configurés)');
       
       // Initialiser le transporter de manière paresseuse
       const transporter = this.initializeTransporter();
@@ -1083,7 +1098,7 @@ Merci de votre confiance !
       }
 
       const { data, error } = await resend.emails.send({
-        from: 'AYNEXT Boutique <onboarding@resend.dev>',
+        from: 'AYNEXT Boutique <contact@aynext.com>', // Changez aynext.com par votre domaine
         to: [user.email],
         subject: '🎉 Bienvenue chez AYNEXT !',
         html: this.generateWelcomeEmailHTML(user),
@@ -1116,7 +1131,7 @@ Merci de votre confiance !
       const statusInfo = this.getStatusInfo(newStatus);
 
       const { data, error } = await resend.emails.send({
-        from: 'AYNEXT Boutique <onboarding@resend.dev>',
+        from: 'AYNEXT Boutique <contact@aynext.com>', // Changez aynext.com par votre domaine
         to: [user.email],
         subject: `${statusInfo.emoji} ${statusInfo.subject} - Commande #${order.numeroCommande}`,
         html: this.generateOrderStatusEmailHTML(user, order, newStatus, statusInfo),
