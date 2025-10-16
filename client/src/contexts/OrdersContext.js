@@ -169,6 +169,14 @@ export const OrdersProvider = ({ children }) => {
       console.log('📦 Type de data.orderId:', typeof data.orderId, data.orderId);
       
       // Envoyer l'email de statut via EmailJS
+      console.log('📧 [OrdersContext] Debug - Structure des données:', {
+        hasData: !!data,
+        hasOrderId: !!data?.orderId,
+        hasNewStatus: !!data?.newStatus,
+        hasOrder: !!data?.order,
+        orderStructure: data?.order ? Object.keys(data.order) : 'N/A'
+      });
+      
       if (data && data.orderId && data.newStatus && data.order) {
         try {
           console.log('📧 [OrdersContext] Envoi email de statut via EmailJS:', data.newStatus);
