@@ -51,30 +51,8 @@ router.post('/inscription', [
       global.emitStatsUpdate(io);
     }
 
-    // Envoyer un email de bienvenue au nouvel utilisateur
-    try {
-      console.log('📧 Tentative d\'envoi de l\'email de bienvenue à:', user.email);
-      
-      // Utiliser Resend si disponible, sinon Gmail
-      const emailMethod = process.env.RESEND_API_KEY 
-        ? emailService.sendWelcomeEmailResend(user)
-        : emailService.sendWelcomeEmail(user);
-      
-      emailMethod
-        .then(result => {
-          if (result.success) {
-            console.log(`✅ Email de bienvenue envoyé avec succès à: ${user.email} (${result.provider || 'Gmail'})`);
-          } else {
-            console.log('⚠️ Email de bienvenue non envoyé:', result.error);
-          }
-        })
-        .catch(emailError => {
-          console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', emailError.message);
-        });
-    } catch (emailError) {
-      console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', emailError.message);
-      // Ne pas bloquer l'inscription si l'email échoue
-    }
+    // EmailJS géré côté frontend - Pas d'email backend
+    console.log('📧 [Backend] Email de bienvenue géré côté frontend via EmailJS');
 
     // Créer le token JWT
     const payload = {
@@ -306,27 +284,9 @@ router.get('/google/callback',
       await user.save();
       console.log('✅ Dernière connexion mise à jour');
 
-      // Envoyer un email de bienvenue (seulement pour les nouveaux utilisateurs OAuth)
+      // EmailJS géré côté frontend - Pas d'email backend
       if (user.isOAuth && user.googleId) {
-        try {
-          console.log('📧 Tentative d\'envoi de l\'email de bienvenue...');
-          
-          // Utiliser Resend si disponible, sinon Gmail
-          const emailResult = process.env.RESEND_API_KEY 
-            ? await emailService.sendWelcomeEmailResend(user)
-            : await emailService.sendWelcomeEmail(user);
-          
-          if (emailResult.success) {
-            console.log(`✅ Email de bienvenue envoyé avec succès à: ${user.email} (${emailResult.provider || 'Gmail'})`);
-          } else {
-            console.log('⚠️ Email de bienvenue non envoyé:', emailResult.error);
-            console.log('ℹ️ La connexion OAuth continue normalement');
-          }
-        } catch (emailError) {
-          console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', emailError.message);
-          console.log('ℹ️ La connexion OAuth continue normalement');
-          // Ne pas bloquer la connexion si l'email échoue
-        }
+        console.log('📧 [Backend] Email de bienvenue OAuth géré côté frontend via EmailJS');
       }
 
       // Créer le token JWT

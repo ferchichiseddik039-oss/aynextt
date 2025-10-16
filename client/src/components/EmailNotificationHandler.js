@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useSocket } from '../contexts/SocketContext';
+import { useAuth } from '../contexts/AuthContext';
 import emailService from '../services/emailService';
 
 const EmailNotificationHandler = () => {
   const { socket } = useSocket();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!socket) return;
@@ -48,6 +50,29 @@ const EmailNotificationHandler = () => {
       socket.off('order-status-changed', handleOrderStatusChanged);
     };
   }, [socket]);
+
+  // Envoyer un email de bienvenue quand l'utilisateur se connecte
+  useEffect(() => {
+    if (user && user.email) {
+      // Délai pour s'assurer que l'utilisateur est bien connecté
+      const timer = setTimeout(async () => {
+        try {
+          console.log('📧 [Frontend] Envoi email de bienvenue pour nouvel utilisateur:', user.email);
+          const result = await emailService.sendWelcomeEmail(user);
+          
+          if (result.success) {
+            console.log('✅ [Frontend] Email de bienvenue envoyé avec succès via EmailJS');
+          } else {
+            console.error('❌ [Frontend] Erreur envoi email de bienvenue:', result.error);
+          }
+        } catch (error) {
+          console.error('❌ [Frontend] Erreur lors de l\'envoi de l\'email de bienvenue:', error);
+        }
+      }, 2000); // Attendre 2 secondes après la connexion
+
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   // Ce composant ne rend rien, il gère juste les emails
   return null;
