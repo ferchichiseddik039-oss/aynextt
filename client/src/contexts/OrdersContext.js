@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import api from '../config/axios';
 import { useSocket } from './SocketContext';
 import { toast } from 'react-toastify';
+import emailService from '../services/emailService';
 
 const OrdersContext = createContext();
 
@@ -163,9 +164,41 @@ export const OrdersProvider = ({ children }) => {
     console.log('✅ WebSocket connecté - Configuration des écouteurs pour les commandes');
 
     // Écouter les mises à jour de statut de commande
-    const handleOrderStatusUpdate = (data) => {
+    const handleOrderStatusUpdate = async (data) => {
       console.log('📦 Mise à jour de commande reçue via WebSocket:', data);
       console.log('📦 Type de data.orderId:', typeof data.orderId, data.orderId);
+      
+      // Envoyer l'email de statut via EmailJS
+      if (data && data.orderId && data.newStatus && data.order) {
+        try {
+          console.log('📧 [OrdersContext] Envoi email de statut via EmailJS:', data.newStatus);
+          
+          // Créer un objet utilisateur pour EmailJS
+          const user = {
+            email: data.order.utilisateur?.email || data.order.userEmail,
+            prenom: data.order.utilisateur?.prenom || data.order.userName?.split(' ')[0],
+            nom: data.order.utilisateur?.nom || data.order.userName?.split(' ').slice(1).join(' ')
+          };
+
+          // Créer un objet commande pour EmailJS
+          const order = {
+            numeroCommande: data.order.numeroCommande || data.orderNumber,
+            total: data.order.total || data.orderTotal,
+            dateCreation: data.order.dateCreation || data.orderDate
+          };
+
+          // Envoyer l'email via EmailJS
+          const result = await emailService.sendOrderStatusEmail(user, order, data.newStatus);
+          
+          if (result.success) {
+            console.log('✅ [OrdersContext] Email de statut envoyé avec succès via EmailJS');
+          } else {
+            console.error('❌ [OrdersContext] Erreur envoi email de statut:', result.error);
+          }
+        } catch (error) {
+          console.error('❌ [OrdersContext] Erreur lors de l\'envoi de l\'email de statut:', error);
+        }
+      }
       
       if (data && data.orderId && data.newStatus) {
         // Convertir les IDs en string pour une comparaison fiable
