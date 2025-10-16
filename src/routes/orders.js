@@ -332,7 +332,18 @@ router.put('/:id/statut', [auth, admin], [
             newStatus: statut,
             orderNumber: order.numeroCommande,
             orderTotal: order.total,
-            orderDate: order.dateCreation
+            orderDate: order.dateCreation,
+            order: {
+              _id: order._id,
+              numeroCommande: order.numeroCommande,
+              total: order.total,
+              dateCreation: order.dateCreation,
+              utilisateur: {
+                email: order.utilisateur.email,
+                prenom: order.utilisateur.prenom,
+                nom: order.utilisateur.nom
+              }
+            }
           });
           console.log('🔌 Données envoyées via WebSocket pour envoi d\'email côté frontend');
         }
