@@ -6,9 +6,16 @@ import emailService from '../services/emailService';
 const EmailNotificationHandler = () => {
   const { socket } = useSocket();
   const { user } = useAuth();
+  
+  console.log('📧 [EmailNotificationHandler] Composant initialisé', { socket: !!socket, user: !!user });
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {
+      console.log('📧 [EmailNotificationHandler] Pas de socket disponible');
+      return;
+    }
+
+    console.log('📧 [EmailNotificationHandler] Socket disponible, configuration des écouteurs');
 
     // Écouter les changements de statut de commande
     const handleOrderStatusChanged = async (data) => {

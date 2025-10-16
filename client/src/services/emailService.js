@@ -2,9 +2,11 @@ import emailjs from '@emailjs/browser';
 
 class EmailService {
   constructor() {
-    this.serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID || 'service_e5v64h2';
-    this.publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY || 'AwvXaO-k4jHjlLX_mV6vH';
+    // Clés EmailJS en dur pour GitHub Pages
+    this.serviceId = 'service_e5v64h2';
+    this.publicKey = 'AwvXaO-k4jHjlLX_mV6vH';
     this.initialized = false;
+    console.log('📧 [EmailJS] Service configuré avec:', { serviceId: this.serviceId, publicKey: this.publicKey.substring(0, 10) + '...' });
   }
 
   initialize() {
