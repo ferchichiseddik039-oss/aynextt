@@ -82,31 +82,67 @@ const Home = () => {
               <div className="category-buttons-grid">
                 <Link
                   to="/genre/femme"
-                  className="category-button bg-black text-white flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  className="category-button bg-white hover:bg-red-50 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-gray-200 hover:border-red-500 rounded-lg overflow-hidden"
                 >
-                  <span className="text-3xl">👩</span>
-                  <span className="category-button-text">FEMME</span>
+                  <img 
+                    src="/aynextt/femme-hoodie.jpg" 
+                    alt="FEMME" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = '/aynextt/hoodie-base.jpg';
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
+                    <span className="category-button-text">FEMME</span>
+                  </div>
                 </Link>
                 <Link
                   to="/genre/homme"
-                  className="category-button bg-red-500 text-white flex items-center justify-center hover:bg-black transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-red-500 hover:border-black rounded-lg"
+                  className="category-button bg-white hover:bg-red-50 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-gray-200 hover:border-red-500 rounded-lg overflow-hidden"
                 >
-                  <span className="text-3xl">👨</span>
-                  <span className="category-button-text">HOMME</span>
+                  <img 
+                    src="/aynextt/homme-hoodie.jpg" 
+                    alt="HOMME" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = '/aynextt/hoodie-base.jpg';
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
+                    <span className="category-button-text">HOMME</span>
+                  </div>
                 </Link>
                 <Link
                   to="/genre/enfant"
-                  className="category-button bg-white text-black flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  className="category-button bg-white hover:bg-red-50 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-gray-200 hover:border-red-500 rounded-lg overflow-hidden"
                 >
-                  <span className="text-3xl">👶</span>
-                  <span className="category-button-text">ENFANT</span>
+                  <img 
+                    src="/aynextt/enfant-hoodie.jpg" 
+                    alt="ENFANT" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = '/aynextt/hoodie-base.jpg';
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
+                    <span className="category-button-text">ENFANT</span>
+                  </div>
                 </Link>
                 <Link
                   to="/genre/sport"
-                  className="category-button bg-black text-white flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  className="category-button bg-white hover:bg-red-50 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-gray-200 hover:border-red-500 rounded-lg overflow-hidden"
                 >
-                  <span className="text-3xl">🏃</span>
-                  <span className="category-button-text">SPORT</span>
+                  <img 
+                    src="/aynextt/sport-hoodie.jpg" 
+                    alt="SPORT" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = '/aynextt/hoodie-base.jpg';
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
+                    <span className="category-button-text">SPORT</span>
+                  </div>
                 </Link>
               </div>
               

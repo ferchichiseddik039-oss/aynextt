@@ -16,7 +16,7 @@
   }
 }
 
-/* Boutons plus grands avec texte */
+/* Boutons plus grands avec images */
 .category-button {
   width: 120px;
   height: 120px;
@@ -24,8 +24,10 @@
   min-height: 120px;
   max-width: 120px;
   max-height: 120px;
+  position: relative;
+  display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0;
 }
 
 /* Responsive pour mobile */
@@ -37,7 +39,7 @@
     min-height: 100px;
     max-width: 100px;
     max-height: 100px;
-    padding: 0.75rem;
+    padding: 0;
   }
 }
 
