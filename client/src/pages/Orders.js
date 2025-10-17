@@ -362,7 +362,7 @@ const Orders = () => {
 
   return (
     <div className="orders-page-container">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-8">
         {/* En-tête principal avec gradient */}
         <div className="orders-header">
           <div className="orders-header-content">
