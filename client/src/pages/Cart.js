@@ -529,15 +529,15 @@ const CheckoutSection = ({ cart, total, shipping, onClose, onSuccess, getActiveP
     // Validation du code postal
     if (!formData.adresseLivraison.codePostal) {
       newErrors['adresseLivraison.codePostal'] = 'Le code postal est requis';
-    } else if (!/^\d{5}$/.test(formData.adresseLivraison.codePostal)) {
-      newErrors['adresseLivraison.codePostal'] = 'Le code postal doit contenir 5 chiffres';
+    } else if (!/^\d{4}$/.test(formData.adresseLivraison.codePostal)) {
+      newErrors['adresseLivraison.codePostal'] = 'Le code postal doit contenir 4 chiffres';
     }
 
     // Validation du téléphone
     if (!formData.adresseLivraison.telephone.trim()) {
       newErrors['adresseLivraison.telephone'] = 'Le téléphone est requis';
-    } else if (!/^[0-9+\-\s()]{10,}$/.test(formData.adresseLivraison.telephone)) {
-      newErrors['adresseLivraison.telephone'] = 'Le téléphone doit contenir au moins 10 caractères';
+    } else if (!/^[0-9+\-\s()]{8,}$/.test(formData.adresseLivraison.telephone)) {
+      newErrors['adresseLivraison.telephone'] = 'Le téléphone doit contenir au moins 8 caractères';
     }
 
     setErrors(newErrors);
