@@ -165,6 +165,64 @@ L'équipe AYNEXT
 Boutique de vêtements tendance
     `;
   }
+
+  async sendNewProductEmail(user, product) {
+    try {
+      console.log('📧 [EmailJS] Tentative d\'envoi email nouveau produit à:', user.email);
+      
+      if (!this.initialize()) {
+        return { success: false, error: 'Service EmailJS non configuré' };
+      }
+
+      const templateParams = {
+        to_email: user.email,
+        to_name: `${user.prenom} ${user.nom}`,
+        subject: `🆕 Nouveau produit disponible : ${product.nom}`,
+        product_name: product.nom,
+        product_description: product.description,
+        product_price: `${product.prix}€`,
+        product_category: product.categorie,
+        product_genre: product.genre,
+        product_brand: product.marque,
+        message: this.generateNewProductMessage(user, product)
+      };
+
+      const result = await emailjs.send(
+        this.serviceId,
+        'template_new_product',
+        templateParams
+      );
+
+      console.log('✅ [EmailJS] Email nouveau produit envoyé avec succès à:', user.email);
+      console.log('📧 [EmailJS] Email ID:', result.text);
+      return { success: true, emailId: result.text, provider: 'EmailJS' };
+    } catch (error) {
+      console.error('❌ [EmailJS] Erreur lors de l\'envoi de l\'email nouveau produit:', error);
+      return { success: false, error: error.message, provider: 'EmailJS' };
+    }
+  }
+
+  generateNewProductMessage(user, product) {
+    return `
+Bonjour ${user.prenom} ${user.nom},
+
+🆕 Découvrez notre nouveau produit !
+
+${product.nom}
+${product.description}
+
+Détails du produit :
+• Prix : ${product.prix}€
+• Catégorie : ${product.categorie}
+• Genre : ${product.genre}
+• Marque : ${product.marque}
+
+Ne manquez pas cette nouveauté !
+
+L'équipe AYNEXT
+Boutique de vêtements tendance
+    `;
+  }
 }
 
 export default new EmailService();

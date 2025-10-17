@@ -49,35 +49,72 @@ const EmailNotificationHandler = () => {
       }
     };
 
-    // S'abonner à l'événement
-    socket.on('order-status-changed', handleOrderStatusChanged);
+    // Écouter les nouveaux produits
+    const handleNewProduct = async (data) => {
+      console.log('📧 [Frontend] Réception notification nouveau produit:', data);
+      
+      try {
+        // Créer un objet utilisateur pour EmailJS (utilisateur actuel)
+        const currentUser = {
+          email: user?.email,
+          prenom: user?.prenom,
+          nom: user?.nom
+        };
 
-    // Nettoyer l'écouteur
-    return () => {
-      socket.off('order-status-changed', handleOrderStatusChanged);
-    };
-  }, [socket]);
-
-  // Envoyer un email de bienvenue quand l'utilisateur se connecte
-  useEffect(() => {
-    if (user && user.email) {
-      // Délai pour s'assurer que l'utilisateur est bien connecté
-      const timer = setTimeout(async () => {
-        try {
-          console.log('📧 [Frontend] Envoi email de bienvenue pour nouvel utilisateur:', user.email);
-          const result = await emailService.sendWelcomeEmail(user);
+        if (currentUser.email) {
+          const result = await emailService.sendNewProductEmail(currentUser, data.product);
           
           if (result.success) {
-            console.log('✅ [Frontend] Email de bienvenue envoyé avec succès via EmailJS');
+            console.log('✅ [Frontend] Email nouveau produit envoyé avec succès via EmailJS');
           } else {
-            console.error('❌ [Frontend] Erreur envoi email de bienvenue:', result.error);
+            console.error('❌ [Frontend] Erreur envoi email nouveau produit:', result.error);
           }
-        } catch (error) {
-          console.error('❌ [Frontend] Erreur lors de l\'envoi de l\'email de bienvenue:', error);
         }
-      }, 2000); // Attendre 2 secondes après la connexion
+      } catch (error) {
+        console.error('❌ [Frontend] Erreur lors de l\'envoi de l\'email nouveau produit:', error);
+      }
+    };
 
-      return () => clearTimeout(timer);
+    // S'abonner aux événements
+    socket.on('order-status-changed', handleOrderStatusChanged);
+    socket.on('product-added', handleNewProduct);
+
+    // Nettoyer les écouteurs
+    return () => {
+      socket.off('order-status-changed', handleOrderStatusChanged);
+      socket.off('product-added', handleNewProduct);
+    };
+  }, [socket, user]);
+
+  // Envoyer un email de bienvenue une seule fois (première connexion)
+  useEffect(() => {
+    if (user && user.email) {
+      // Vérifier si l'email de bienvenue a déjà été envoyé
+      const welcomeEmailSent = localStorage.getItem(`welcome_email_sent_${user._id}`);
+      
+      if (!welcomeEmailSent) {
+        // Délai pour s'assurer que l'utilisateur est bien connecté
+        const timer = setTimeout(async () => {
+          try {
+            console.log('📧 [Frontend] Envoi email de bienvenue pour nouvel utilisateur:', user.email);
+            const result = await emailService.sendWelcomeEmail(user);
+            
+            if (result.success) {
+              console.log('✅ [Frontend] Email de bienvenue envoyé avec succès via EmailJS');
+              // Marquer que l'email de bienvenue a été envoyé
+              localStorage.setItem(`welcome_email_sent_${user._id}`, 'true');
+            } else {
+              console.error('❌ [Frontend] Erreur envoi email de bienvenue:', result.error);
+            }
+          } catch (error) {
+            console.error('❌ [Frontend] Erreur lors de l\'envoi de l\'email de bienvenue:', error);
+          }
+        }, 2000); // Attendre 2 secondes après la connexion
+
+        return () => clearTimeout(timer);
+      } else {
+        console.log('📧 [Frontend] Email de bienvenue déjà envoyé pour cet utilisateur');
+      }
     }
   }, [user]);
 

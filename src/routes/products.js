@@ -206,14 +206,15 @@ router.post('/', [auth, admin], [
 
     console.log('✅ Nouveau produit créé:', produit.nom);
 
-    // Émettre un événement WebSocket pour notifier tous les clients admin
+    // Émettre un événement WebSocket pour notifier tous les clients
     const io = req.app.get('io');
     if (io) {
-      io.to('admin').emit('product-added', {
+      // Émettre à tous les clients (pas seulement les admins)
+      io.emit('product-added', {
         product: produit,
         addedBy: req.user.nom || req.user.email
       });
-      console.log('📡 Événement WebSocket émis: product-added');
+      console.log('📡 Événement WebSocket émis: product-added à tous les clients');
       
       // Émettre les statistiques mises à jour
       if (global.emitStatsUpdate) {
@@ -221,30 +222,8 @@ router.post('/', [auth, admin], [
       }
     }
 
-    // Envoyer un email à tous les clients pour le nouveau produit
-    try {
-      console.log('📧 Récupération des clients pour notification email...');
-      const clients = await User.find({ role: 'client', estActif: true });
-      console.log(`📧 ${clients.length} client(s) trouvé(s)`);
-      
-      if (clients.length > 0) {
-        // Envoyer les emails de manière asynchrone (ne pas bloquer la réponse)
-        emailService.sendNewProductEmail(clients, produit)
-          .then(result => {
-            if (result.success) {
-              console.log(`✅ Emails de nouveau produit envoyés: ${result.sent} succès, ${result.failed} échecs`);
-            } else {
-              console.log('⚠️ Erreur lors de l\'envoi des emails:', result.error);
-            }
-          })
-          .catch(error => {
-            console.error('❌ Erreur lors de l\'envoi des emails:', error.message);
-          });
-      }
-    } catch (emailError) {
-      console.error('❌ Erreur lors de la récupération des clients:', emailError.message);
-      // Ne pas bloquer la création du produit si l'email échoue
-    }
+    // EmailJS géré côté frontend - Pas d'email backend
+    console.log('📧 [Backend] Email nouveau produit géré côté frontend via EmailJS');
 
     res.status(201).json(produit);
   } catch (err) {
