@@ -1524,6 +1524,13 @@ io.on('connection', (socket) => {
     console.log('📡 Nombre total de clients dans admin-room:', io.sockets.adapter.rooms.get('admin-room')?.size || 0);
   });
 
+  // Rejoindre la room utilisateur
+  socket.on('join-user-room', (userRoom) => {
+    socket.join(userRoom);
+    console.log('👤 Utilisateur rejoint la room:', userRoom, 'Socket:', socket.id);
+    console.log('📡 Nombre total de clients dans', userRoom + ':', io.sockets.adapter.rooms.get(userRoom)?.size || 0);
+  });
+
   // Quitter la room admin
   socket.on('leave-admin', () => {
     socket.leave('admin-room');

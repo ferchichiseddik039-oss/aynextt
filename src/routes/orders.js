@@ -104,7 +104,7 @@ router.post('/', [auth, [
 
     // Émettre l'événement WebSocket pour notifier le frontend
     if (io) {
-      io.emit('new-order', {
+      const orderData = {
         orderId: order._id,
         userId: order.utilisateur._id,
         userEmail: order.utilisateur.email,
@@ -125,8 +125,15 @@ router.post('/', [auth, [
             nom: order.utilisateur.nom
           }
         }
-      });
-      console.log('🔌 Émission WebSocket: new-order pour commande', order.numeroCommande);
+      };
+
+      // Émettre à l'utilisateur spécifique qui a passé la commande
+      io.to(`user_${order.utilisateur._id}`).emit('new-order', orderData);
+      
+      // Émettre globalement pour les admins
+      io.emit('new-order', orderData);
+      
+      console.log('🔌 Émission WebSocket: new-order pour commande', order.numeroCommande, 'à l\'utilisateur', order.utilisateur._id);
     }
 
     res.status(201).json(order);
@@ -292,7 +299,7 @@ router.post('/custom-hoodie', auth, [
 
     // Émettre l'événement WebSocket pour notifier le frontend de la nouvelle commande
     if (io) {
-      io.emit('new-order', {
+      const orderData = {
         orderId: customOrder._id,
         userId: customOrder.utilisateur._id,
         userEmail: customOrder.utilisateur.email,
@@ -313,8 +320,15 @@ router.post('/custom-hoodie', auth, [
             nom: customOrder.utilisateur.nom
           }
         }
-      });
-      console.log('🔌 Émission WebSocket: new-order pour commande personnalisée', customOrder.numeroCommande);
+      };
+
+      // Émettre à l'utilisateur spécifique qui a passé la commande
+      io.to(`user_${customOrder.utilisateur._id}`).emit('new-order', orderData);
+      
+      // Émettre globalement pour les admins
+      io.emit('new-order', orderData);
+      
+      console.log('🔌 Émission WebSocket: new-order pour commande personnalisée', customOrder.numeroCommande, 'à l\'utilisateur', customOrder.utilisateur._id);
     }
 
     console.log(`✅ Commande de hoodie personnalisé créée - ID: ${customOrder._id}`);

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { useAuth } from './AuthContext';
 
 const SocketContext = createContext();
 
@@ -14,6 +15,7 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     // Créer la connexion Socket.IO
@@ -65,6 +67,15 @@ export const SocketProvider = ({ children }) => {
       }
     };
   }, []);
+
+  // Rejoindre la room de l'utilisateur quand il se connecte
+  useEffect(() => {
+    if (socket && isConnected && user && user._id) {
+      const userRoom = `user_${user._id}`;
+      socket.emit('join-user-room', userRoom);
+      console.log('👤 Rejoint la room utilisateur:', userRoom);
+    }
+  }, [socket, isConnected, user]);
 
   const joinAdminRoom = () => {
     if (socket && isConnected) {

@@ -285,6 +285,17 @@ export const OrdersProvider = ({ children }) => {
           
           if (!exists) {
             console.log('✅ Ajout de la nouvelle commande à la liste:', newOrderId);
+            
+            // Afficher une notification toast
+            toast.success(`🎉 Nouvelle commande #${data.order.numeroCommande} créée !`, {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true
+            });
+            
             return [data.order, ...ordersArray];
           } else {
             console.log('⚠️ La commande existe déjà:', newOrderId);
