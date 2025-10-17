@@ -433,8 +433,8 @@ const ProfileTab = ({ user, formData, editing, errors, onEdit, onSave, onCancel,
         </div>
       </div>
 
-      {/* Informations du compte */}
-      <div className="profile-section">
+      {/* Informations du compte - Déplacé en bas */}
+      <div className="profile-section account-info-section">
         <h3>Informations du compte</h3>
         <div className="account-info">
           <div className="info-item">
