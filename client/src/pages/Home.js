@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaCreditCard, FaShoppingBag, FaUser, FaSearch, FaAward, FaEnvelope, FaMapMarkerAlt, FaEye, FaTag, FaStore, FaPalette } from 'react-icons/fa';
 import AynextLogo from '../components/AynextLogo';
 import HoodieCustomizer from '../components/HoodieCustomizer';
+import '../styles/Home.css';
 
 const Home = () => {
   const [showHoodieDesigner, setShowHoodieDesigner] = useState(false);
@@ -78,31 +79,31 @@ const Home = () => {
               </p>
               
               {/* Modern Category Buttons */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="category-buttons-grid">
                 <Link
                   to="/genre/femme"
-                  className="bg-black text-white w-16 h-16 flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  className="category-button bg-black text-white flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
                   title="FEMME"
                 >
                   <span className="text-2xl">👩</span>
                 </Link>
                 <Link
                   to="/genre/homme"
-                  className="bg-red-500 text-white w-16 h-16 flex items-center justify-center hover:bg-black transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-red-500 hover:border-black rounded-lg"
+                  className="category-button bg-red-500 text-white flex items-center justify-center hover:bg-black transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-red-500 hover:border-black rounded-lg"
                   title="HOMME"
                 >
                   <span className="text-2xl">👨</span>
                 </Link>
                 <Link
                   to="/genre/enfant"
-                  className="bg-white text-black w-16 h-16 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  className="category-button bg-white text-black flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
                   title="ENFANT"
                 >
                   <span className="text-2xl">👶</span>
                 </Link>
                 <Link
                   to="/genre/sport"
-                  className="bg-black text-white w-16 h-16 flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  className="category-button bg-black text-white flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
                   title="SPORT"
                 >
                   <span className="text-2xl">🏃</span>

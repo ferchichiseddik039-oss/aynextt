@@ -1,0 +1,27 @@
+/* Styles pour la page d'accueil - Grille 2x2 forcée sur mobile */
+.category-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* Forcer la grille 2x2 même sur très petits écrans */
+@media (max-width: 480px) {
+  .category-buttons-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem;
+    max-width: 280px;
+  }
+}
+
+/* Assurer que les boutons restent carrés */
+.category-button {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  max-width: 64px;
+  max-height: 64px;
+}
