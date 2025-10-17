@@ -136,18 +136,18 @@ const Header = () => {
 
                 {/* Menu déroulant */}
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-96 bg-white rounded-xl shadow-2xl border border-gray-100 py-4 z-50 animate-in slide-in-from-top-2 duration-200 -translate-x-8 sm:translate-x-0">
+                  <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 py-4 z-50 animate-in slide-in-from-top-2 duration-200 -translate-x-8 sm:translate-x-0">
                     {/* En-tête du menu */}
-                    <div className="px-8 py-4 border-b border-gray-100">
+                    <div className="px-4 sm:px-8 py-4 border-b border-gray-100">
                       <p className="text-sm font-semibold text-gray-900 mb-1">{user?.prenom} {user?.nom}</p>
-                      <p className="text-xs text-gray-500 break-words" title={user?.email}>{user?.email}</p>
+                      <p className="text-xs text-gray-500 break-all sm:break-words overflow-hidden" title={user?.email}>{user?.email}</p>
                     </div>
                     
                     {/* Options du menu */}
                     <div className="py-2">
                       <Link
                         to="/profile"
-                        className="flex items-center px-8 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group"
+                        className="flex items-center px-4 sm:px-8 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <FaUser className="w-5 h-5 mr-4 text-blue-500 group-hover:text-blue-600 transition-colors flex-shrink-0" />
@@ -156,7 +156,7 @@ const Header = () => {
                       
                       <Link
                         to="/orders"
-                        className="flex items-center px-8 py-4 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200 group"
+                        className="flex items-center px-4 sm:px-8 py-4 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-all duration-200 group"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <FaShoppingBag className="w-5 h-5 mr-4 text-green-500 group-hover:text-green-600 transition-colors flex-shrink-0" />
@@ -167,7 +167,7 @@ const Header = () => {
                       
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-8 py-4 text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-200 group"
+                        className="flex items-center w-full px-4 sm:px-8 py-4 text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-200 group"
                       >
                         <FaSignOutAlt className="w-5 h-5 mr-4 text-red-500 group-hover:text-red-600 transition-colors flex-shrink-0" />
                         <span className="font-medium text-sm">Déconnexion</span>
