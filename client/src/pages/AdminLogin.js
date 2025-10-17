@@ -31,7 +31,6 @@ const AdminLogin = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       if (user.role === 'admin') {
-        toast.success('Connexion administrateur réussie !');
         navigate('/admin');
       } else {
         toast.error('Accès refusé : Vous devez être administrateur');

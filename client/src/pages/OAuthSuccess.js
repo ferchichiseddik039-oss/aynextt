@@ -32,7 +32,6 @@ const OAuthSuccess = () => {
           await setAuthToken(token);
           
           console.log('✅ Token sauvegardé et utilisateur chargé');
-          toast.success('Connexion réussie !');
           
           // Rediriger immédiatement après le chargement de l'utilisateur
           setTimeout(() => {
