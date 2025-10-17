@@ -89,7 +89,7 @@ const Home = () => {
                     alt="FEMME" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.src = '/aynextt/hoodie-base.jpg';
+                      e.target.src = '/aynextt/placeholder-product.jpg';
                     }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
@@ -105,7 +105,7 @@ const Home = () => {
                     alt="HOMME" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.src = '/aynextt/hoodie-base.jpg';
+                      e.target.src = '/aynextt/placeholder-product.jpg';
                     }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
@@ -121,7 +121,7 @@ const Home = () => {
                     alt="ENFANT" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.src = '/aynextt/hoodie-base.jpg';
+                      e.target.src = '/aynextt/placeholder-product.jpg';
                     }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
@@ -137,7 +137,7 @@ const Home = () => {
                     alt="SPORT" 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.src = '/aynextt/hoodie-base.jpg';
+                      e.target.src = '/aynextt/placeholder-product.jpg';
                     }}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-center py-1">
