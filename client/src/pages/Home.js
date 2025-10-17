@@ -78,30 +78,34 @@ const Home = () => {
               </p>
               
               {/* Modern Category Buttons */}
-              <div className="grid grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-4 gap-4 mb-8">
                 <Link
                   to="/genre/femme"
-                  className="bg-black text-white px-8 py-6 font-bold text-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500"
+                  className="bg-black text-white w-16 h-16 flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  title="FEMME"
                 >
-                  👩 FEMME
+                  <span className="text-2xl">👩</span>
                 </Link>
                 <Link
                   to="/genre/homme"
-                  className="bg-red-500 text-white px-8 py-6 font-bold text-center hover:bg-black transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-red-500 hover:border-black"
+                  className="bg-red-500 text-white w-16 h-16 flex items-center justify-center hover:bg-black transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-red-500 hover:border-black rounded-lg"
+                  title="HOMME"
                 >
-                  👨 HOMME
+                  <span className="text-2xl">👨</span>
                 </Link>
                 <Link
                   to="/genre/enfant"
-                  className="bg-white text-black px-8 py-6 font-bold text-center hover:bg-red-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500"
+                  className="bg-white text-black w-16 h-16 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  title="ENFANT"
                 >
-                  👶 ENFANT
+                  <span className="text-2xl">👶</span>
                 </Link>
                 <Link
                   to="/genre/sport"
-                  className="bg-black text-white px-8 py-6 font-bold text-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500"
+                  className="bg-black text-white w-16 h-16 flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
+                  title="SPORT"
                 >
-                  🏃 SPORT
+                  <span className="text-2xl">🏃</span>
                 </Link>
               </div>
               
