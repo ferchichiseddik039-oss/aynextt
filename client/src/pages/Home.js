@@ -78,7 +78,7 @@ const Home = () => {
               </p>
               
               {/* Modern Category Buttons */}
-              <div className="grid grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 gap-4 mb-8">
                 <Link
                   to="/genre/femme"
                   className="bg-black text-white w-16 h-16 flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
