@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaInstagram, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { useSettings } from '../contexts/SettingsContext';
 
 const Footer = () => {
@@ -27,10 +27,7 @@ const Footer = () => {
   // Liens supprimés comme demandé
 
   const socialLinks = [
-    { icon: <FaFacebook />, link: 'https://facebook.com', label: 'Facebook' },
-    { icon: <FaTwitter />, link: 'https://twitter.com', label: 'Twitter' },
-    { icon: <FaInstagram />, link: 'https://instagram.com', label: 'Instagram' },
-    { icon: <FaLinkedin />, link: 'https://linkedin.com', label: 'LinkedIn' }
+    { icon: <FaInstagram />, link: 'https://www.instagram.com/aynext0?igsh=c3J1dDkzb2M4cHc1', label: 'Instagram' }
   ];
 
   return (

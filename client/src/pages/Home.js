@@ -74,9 +74,6 @@ const Home = () => {
                 VÊTEMENTS DE MODE POUR TOUS
               </h1>
               <div className="w-24 h-1 bg-red-500 mb-6"></div>
-              <p className="text-2xl text-gray-700 mb-10 font-light">
-                + de 15000 références
-              </p>
               
               {/* Modern Category Buttons */}
               <div className="category-buttons-grid">
