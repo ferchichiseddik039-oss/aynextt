@@ -252,7 +252,7 @@ export default function HoodieCustomizer() {
           width: "100vw",
           height: "100vh",
           overflowY: "auto",
-          padding: "0",
+          padding: window.innerWidth <= 768 ? "10px" : "20px",
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           zIndex: "1000",
           // Style personnalisé pour la scrollbar Firefox
@@ -285,11 +285,13 @@ export default function HoodieCustomizer() {
             {/* Header avec titre et bouton fermer */}
             <div style={{ 
               display: "flex", 
-              justifyContent: "space-between", 
+              justifyContent: window.innerWidth <= 768 ? "center" : "space-between", 
               alignItems: "center", 
               marginBottom: "30px",
               paddingBottom: "20px",
-              borderBottom: "2px solid #f0f0f0"
+              borderBottom: "2px solid #f0f0f0",
+              flexWrap: "wrap",
+              gap: "10px"
             }}>
               <h2 style={{ 
                 margin: "0",
@@ -409,10 +411,14 @@ export default function HoodieCustomizer() {
                     }
                     alt="Hoodie"
                     style={{ 
-                      maxWidth: "350px", 
+                      maxWidth: window.innerWidth <= 768 ? "280px" : "350px",
+                      width: "100%",
+                      height: "auto",
                       display: "block",
+                      margin: "0 auto",
                       borderRadius: "10px",
-                      boxShadow: "0 5px 15px rgba(0, 0, 0, 0.1)"
+                      boxShadow: "0 5px 15px rgba(0, 0, 0, 0.1)",
+                      objectFit: "contain"
                     }}
                   />
 
