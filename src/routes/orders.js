@@ -102,6 +102,33 @@ router.post('/', [auth, [
     // Vider le panier
     await cart.viderPanier();
 
+    // Émettre l'événement WebSocket pour notifier le frontend
+    if (io) {
+      io.emit('new-order', {
+        orderId: order._id,
+        userId: order.utilisateur._id,
+        userEmail: order.utilisateur.email,
+        userName: `${order.utilisateur.prenom} ${order.utilisateur.nom}`,
+        orderNumber: order.numeroCommande,
+        orderTotal: order.total,
+        orderDate: order.dateCreation,
+        order: {
+          _id: order._id,
+          numeroCommande: order.numeroCommande,
+          total: order.total,
+          dateCreation: order.dateCreation,
+          statut: order.statut,
+          articles: order.articles,
+          utilisateur: {
+            email: order.utilisateur.email,
+            prenom: order.utilisateur.prenom,
+            nom: order.utilisateur.nom
+          }
+        }
+      });
+      console.log('🔌 Émission WebSocket: new-order pour commande', order.numeroCommande);
+    }
+
     res.status(201).json(order);
   } catch (err) {
     console.error(err.message);
@@ -261,6 +288,33 @@ router.post('/custom-hoodie', auth, [
     const io = req.app.get('io');
     if (io && global.emitStatsUpdate) {
       global.emitStatsUpdate(io);
+    }
+
+    // Émettre l'événement WebSocket pour notifier le frontend de la nouvelle commande
+    if (io) {
+      io.emit('new-order', {
+        orderId: customOrder._id,
+        userId: customOrder.utilisateur._id,
+        userEmail: customOrder.utilisateur.email,
+        userName: `${customOrder.utilisateur.prenom} ${customOrder.utilisateur.nom}`,
+        orderNumber: customOrder.numeroCommande,
+        orderTotal: customOrder.total,
+        orderDate: customOrder.dateCreation,
+        order: {
+          _id: customOrder._id,
+          numeroCommande: customOrder.numeroCommande,
+          total: customOrder.total,
+          dateCreation: customOrder.dateCreation,
+          statut: customOrder.statut,
+          articles: customOrder.articles,
+          utilisateur: {
+            email: customOrder.utilisateur.email,
+            prenom: customOrder.utilisateur.prenom,
+            nom: customOrder.utilisateur.nom
+          }
+        }
+      });
+      console.log('🔌 Émission WebSocket: new-order pour commande personnalisée', customOrder.numeroCommande);
     }
 
     console.log(`✅ Commande de hoodie personnalisé créée - ID: ${customOrder._id}`);

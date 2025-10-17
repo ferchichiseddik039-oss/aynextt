@@ -295,9 +295,10 @@ const Cart = () => {
             total={total}
             shipping={shipping}
             onClose={() => setShowCheckout(false)}
-            onSuccess={(newOrder) => {
+            onSuccess={async (newOrder) => {
               setShowCheckout(false);
               addOrder(newOrder); // Ajouter la nouvelle commande au contexte
+              await clearCart(); // Vider le panier après commande réussie
               navigate('/orders');
             }}
             getActivePaymentMethods={getActivePaymentMethods}
