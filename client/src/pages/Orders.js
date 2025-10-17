@@ -11,10 +11,15 @@ const OrderItemImage = ({ article, isCustomItem }) => {
   // Image source selon le type d'article
   const getImageSource = () => {
     if (isCustomItem) {
-      // Pour les hoodies personnalisés, afficher le logo de la boutique
-      return '/logo-aynext.png';
+      // Pour les hoodies personnalisés, afficher une image de hoodie selon la couleur
+      const color = article.customData?.color || article.couleur || '#ff0000';
+      if (color === '#000000' || color === 'noir' || color === 'Noir') {
+        return '/aynextt/hoodie-noir.jpg';
+      } else {
+        return '/aynextt/hoodie-blanc.jpg';
+      }
     } else {
-      return article.produit?.images?.[0]?.url || article.produit?.images?.[0] || '/logo-aynext.png';
+      return article.produit?.images?.[0]?.url || article.produit?.images?.[0] || '/aynextt/logo-aynext.png';
     }
   };
 

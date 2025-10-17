@@ -308,16 +308,18 @@ export default function HoodieCustomizer() {
                   background: "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)",
                   color: "white",
                   border: "none",
-                  padding: "12px 20px",
+                  padding: window.innerWidth <= 768 ? "8px 12px" : "12px 20px",
                   borderRadius: "25px",
                   cursor: "pointer",
-                  fontSize: "14px",
+                  fontSize: window.innerWidth <= 768 ? "12px" : "14px",
                   fontWeight: "600",
                   boxShadow: "0 4px 15px rgba(255, 107, 107, 0.3)",
                   transition: "all 0.3s ease",
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px"
+                  gap: "6px",
+                  maxWidth: "fit-content",
+                  whiteSpace: "nowrap"
                 }}
                 onMouseOver={(e) => {
                   e.target.style.transform = "translateY(-2px)";
