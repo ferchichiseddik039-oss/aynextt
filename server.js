@@ -1380,16 +1380,8 @@ app.put('/api/orders/:id/statut', async (req, res) => {
         // Ne pas bloquer la mise à jour du statut si l'email échoue
       }
       
-      // Émettre un événement WebSocket pour notifier tous les clients
-      console.log('🔌 Émission WebSocket: order-status-updated');
-      io.emit('order-status-updated', {
-        type: 'order_status_updated',
-        orderId: updatedOrder._id,
-        newStatus: statut,
-        order: updatedOrder,
-        timestamp: new Date(),
-        updatedBy: decoded.email || 'admin'
-      });
+      // Événement WebSocket géré par la route /api/orders/:id/statut
+      console.log('📧 [Backend] Email de statut géré côté frontend via EmailJS');
       
       // Émettre aussi un événement spécifique pour les admins
       io.to('admin-room').emit('admin-order-updated', {

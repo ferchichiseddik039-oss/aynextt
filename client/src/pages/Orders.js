@@ -113,10 +113,10 @@ const Orders = () => {
       }
     };
 
-    socket.on('order-status-updated', handleOrderUpdate);
+    socket.on('order-status-changed', handleOrderUpdate);
 
     return () => {
-      socket.off('order-status-updated', handleOrderUpdate);
+      socket.off('order-status-changed', handleOrderUpdate);
     };
   }, [socket, isConnected, selectedOrder]);
 

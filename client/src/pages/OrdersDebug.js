@@ -30,7 +30,7 @@ const OrdersDebug = () => {
 
       socket.on('connect', () => logEvent('connect')());
       socket.on('disconnect', () => logEvent('disconnect')());
-      socket.on('order-status-updated', logEvent('order-status-updated'));
+      socket.on('order-status-changed', logEvent('order-status-changed'));
       socket.on('new-order', logEvent('new-order'));
       socket.on('admin-order-updated', logEvent('admin-order-updated'));
       socket.on('admin-new-order', logEvent('admin-new-order'));
@@ -38,7 +38,7 @@ const OrdersDebug = () => {
       return () => {
         socket.off('connect');
         socket.off('disconnect');
-        socket.off('order-status-updated');
+        socket.off('order-status-changed');
         socket.off('new-order');
         socket.off('admin-order-updated');
         socket.off('admin-new-order');

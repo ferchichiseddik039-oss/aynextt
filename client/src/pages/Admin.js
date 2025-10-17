@@ -105,7 +105,7 @@ const Admin = () => {
     });
 
     // Événement pour les mises à jour de statut des commandes
-    socket.on('order-status-updated', (data) => {
+    socket.on('order-status-changed', (data) => {
       console.log('🔄 Statut de commande mis à jour via WebSocket:', data);
       // Mettre à jour la liste des commandes
       setOrders(prev => prev.map(order => 
@@ -162,7 +162,7 @@ const Admin = () => {
       socket.off('product-added');
       socket.off('product-updated');
       socket.off('stats-updated');
-      socket.off('order-status-updated');
+      socket.off('order-status-changed');
       socket.off('admin-order-updated');
       socket.off('admin-new-order');
     };
