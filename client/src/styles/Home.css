@@ -2,8 +2,8 @@
 .category-buttons-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  max-width: 320px;
+  gap: 1.5rem;
+  max-width: 400px;
   margin: 0 auto;
 }
 
@@ -11,17 +11,47 @@
 @media (max-width: 480px) {
   .category-buttons-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 0.75rem;
-    max-width: 280px;
+    gap: 1rem;
+    max-width: 320px;
   }
 }
 
-/* Assurer que les boutons restent carrés */
+/* Boutons plus grands avec texte */
 .category-button {
-  width: 64px;
-  height: 64px;
-  min-width: 64px;
-  min-height: 64px;
-  max-width: 64px;
-  max-height: 64px;
+  width: 120px;
+  height: 120px;
+  min-width: 120px;
+  min-height: 120px;
+  max-width: 120px;
+  max-height: 120px;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 480px) {
+  .category-button {
+    width: 100px;
+    height: 100px;
+    min-width: 100px;
+    min-height: 100px;
+    max-width: 100px;
+    max-height: 100px;
+    padding: 0.75rem;
+  }
+}
+
+/* Style du texte dans les boutons */
+.category-button-text {
+  font-size: 0.875rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .category-button-text {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
 }

@@ -83,30 +83,30 @@ const Home = () => {
                 <Link
                   to="/genre/femme"
                   className="category-button bg-black text-white flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
-                  title="FEMME"
                 >
-                  <span className="text-2xl">👩</span>
+                  <span className="text-3xl">👩</span>
+                  <span className="category-button-text">FEMME</span>
                 </Link>
                 <Link
                   to="/genre/homme"
                   className="category-button bg-red-500 text-white flex items-center justify-center hover:bg-black transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-red-500 hover:border-black rounded-lg"
-                  title="HOMME"
                 >
-                  <span className="text-2xl">👨</span>
+                  <span className="text-3xl">👨</span>
+                  <span className="category-button-text">HOMME</span>
                 </Link>
                 <Link
                   to="/genre/enfant"
                   className="category-button bg-white text-black flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
-                  title="ENFANT"
                 >
-                  <span className="text-2xl">👶</span>
+                  <span className="text-3xl">👶</span>
+                  <span className="category-button-text">ENFANT</span>
                 </Link>
                 <Link
                   to="/genre/sport"
                   className="category-button bg-black text-white flex items-center justify-center hover:bg-red-500 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 border-2 border-black hover:border-red-500 rounded-lg"
-                  title="SPORT"
                 >
-                  <span className="text-2xl">🏃</span>
+                  <span className="text-3xl">🏃</span>
+                  <span className="category-button-text">SPORT</span>
                 </Link>
               </div>
               
