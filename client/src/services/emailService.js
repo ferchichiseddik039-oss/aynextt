@@ -65,8 +65,8 @@ class EmailService {
       const statusInfo = this.getStatusInfo(newStatus);
 
       const templateParams = {
+        to_name: user.prenom || user.nom || user.email,
         to_email: user.email,
-        to_name: `${user.prenom} ${user.nom}`,
         subject: `${statusInfo.emoji} ${statusInfo.subject} - Commande #${order.numeroCommande}`,
         order_number: order.numeroCommande,
         order_status: statusInfo.subject,
@@ -78,7 +78,7 @@ class EmailService {
 
       const result = await emailjs.send(
         this.serviceId,
-        'template_order_status',
+        'template_order_status', // Template ID correct pour Order Confirmation
         templateParams
       );
 
@@ -169,27 +169,26 @@ Boutique de vêtements tendance
   async sendNewProductEmail(user, product) {
     try {
       console.log('📧 [EmailJS] Tentative d\'envoi email nouveau produit à:', user.email);
+      console.log('📧 [EmailJS] Données produit:', product);
+      console.log('📧 [EmailJS] Données utilisateur:', user);
       
       if (!this.initialize()) {
+        console.error('❌ [EmailJS] Service EmailJS non initialisé');
         return { success: false, error: 'Service EmailJS non configuré' };
       }
 
       const templateParams = {
+        to_name: user.prenom || user.nom || user.email,
         to_email: user.email,
-        to_name: `${user.prenom} ${user.nom}`,
         subject: `🆕 Nouveau produit disponible : ${product.nom}`,
-        product_name: product.nom,
-        product_description: product.description,
-        product_price: `${product.prix}€`,
-        product_category: product.categorie,
-        product_genre: product.genre,
-        product_brand: product.marque,
         message: this.generateNewProductMessage(user, product)
       };
 
+      console.log('📧 [EmailJS] Paramètres template:', templateParams);
+
       const result = await emailjs.send(
         this.serviceId,
-        'template_new_product',
+        'template_welcome', // Utiliser template_welcome temporairement
         templateParams
       );
 
@@ -198,6 +197,7 @@ Boutique de vêtements tendance
       return { success: true, emailId: result.text, provider: 'EmailJS' };
     } catch (error) {
       console.error('❌ [EmailJS] Erreur lors de l\'envoi de l\'email nouveau produit:', error);
+      console.error('❌ [EmailJS] Détails erreur:', error);
       return { success: false, error: error.message, provider: 'EmailJS' };
     }
   }

@@ -20,13 +20,19 @@ const EmailNotificationHandler = () => {
     // Écouter les changements de statut de commande
     const handleOrderStatusChanged = async (data) => {
       console.log('📧 [Frontend] Réception notification changement de statut:', data);
+      console.log('📧 [Frontend] Données reçues:', {
+        userEmail: data.userEmail,
+        userName: data.userName,
+        newStatus: data.newStatus,
+        orderNumber: data.orderNumber
+      });
       
       try {
         // Créer un objet utilisateur pour EmailJS
         const user = {
           email: data.userEmail,
-          prenom: data.userName.split(' ')[0],
-          nom: data.userName.split(' ').slice(1).join(' ')
+          prenom: data.userName?.split(' ')[0] || '',
+          nom: data.userName?.split(' ').slice(1).join(' ') || ''
         };
 
         // Créer un objet commande pour EmailJS
@@ -35,6 +41,8 @@ const EmailNotificationHandler = () => {
           total: data.orderTotal,
           dateCreation: data.orderDate
         };
+
+        console.log('📧 [Frontend] Envoi email de statut à:', user.email, 'Statut:', data.newStatus);
 
         // Envoyer l'email via EmailJS
         const result = await emailService.sendOrderStatusEmail(user, order, data.newStatus);
@@ -52,6 +60,7 @@ const EmailNotificationHandler = () => {
     // Écouter les nouveaux produits
     const handleNewProduct = async (data) => {
       console.log('📧 [Frontend] Réception notification nouveau produit:', data);
+      console.log('📧 [Frontend] Utilisateur actuel:', user);
       
       try {
         // Créer un objet utilisateur pour EmailJS (utilisateur actuel)
@@ -61,7 +70,10 @@ const EmailNotificationHandler = () => {
           nom: user?.nom
         };
 
+        console.log('📧 [Frontend] Utilisateur pour email:', currentUser);
+
         if (currentUser.email) {
+          console.log('📧 [Frontend] Envoi email nouveau produit à:', currentUser.email);
           const result = await emailService.sendNewProductEmail(currentUser, data.product);
           
           if (result.success) {
@@ -69,6 +81,8 @@ const EmailNotificationHandler = () => {
           } else {
             console.error('❌ [Frontend] Erreur envoi email nouveau produit:', result.error);
           }
+        } else {
+          console.warn('⚠️ [Frontend] Pas d\'email utilisateur, email nouveau produit non envoyé');
         }
       } catch (error) {
         console.error('❌ [Frontend] Erreur lors de l\'envoi de l\'email nouveau produit:', error);
