@@ -70,7 +70,7 @@ const Home = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             {/* Left Content */}
             <div>
-              <h1 className="text-6xl md:text-7xl font-black text-black mb-8 leading-tight">
+              <h1 className="text-3xl md:text-4xl font-black text-black mb-8 leading-tight">
                 VÊTEMENTS DE MODE POUR TOUS
               </h1>
               <div className="w-24 h-1 bg-red-500 mb-6"></div>
