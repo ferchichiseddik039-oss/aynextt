@@ -217,17 +217,20 @@ const Profile = () => {
         {/* Contenu des onglets */}
         <div className="profile-content">
           {activeTab === 'profile' && (
-            <ProfileTab
-              user={user}
-              formData={formData}
-              editing={editing}
-              errors={errors}
-              onEdit={() => setEditing(true)}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              onChange={handleChange}
-              getFieldError={getFieldError}
-            />
+            <>
+              <ProfileTab
+                user={user}
+                formData={formData}
+                editing={editing}
+                errors={errors}
+                onEdit={() => setEditing(true)}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                onChange={handleChange}
+                getFieldError={getFieldError}
+              />
+              <AccountInfoSection user={user} />
+            </>
           )}
           
           {activeTab === 'orders' && (
@@ -251,7 +254,8 @@ const Profile = () => {
 const ProfileTab = ({ user, formData, editing, errors, onEdit, onSave, onCancel, onChange, getFieldError }) => {
   return (
     <div className="profile-tab">
-      <div className="profile-section">
+      {/* Section Informations personnelles */}
+      <div className="profile-section personal-info-section">
         <div className="section-header">
           <h3>Informations personnelles</h3>
           {!editing ? (
@@ -432,29 +436,33 @@ const ProfileTab = ({ user, formData, editing, errors, onEdit, onSave, onCancel,
           </div>
         </div>
       </div>
+    </div>
+  );
+};
 
-      {/* Informations du compte - Déplacé en bas */}
-      <div className="profile-section account-info-section">
-        <h3>Informations du compte</h3>
-        <div className="account-info">
-          <div className="info-item">
-            <span className="label">Membre depuis:</span>
-            <span className="value">
-              {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-            </span>
-          </div>
-          <div className="info-item">
-            <span className="label">Rôle:</span>
-            <span className={`value role-badge ${user.role}`}>
-              {user.role === 'admin' ? 'Administrateur' : 'Client'}
-            </span>
-          </div>
-          <div className="info-item">
-            <span className="label">Dernière connexion:</span>
-            <span className="value">
-              {new Date().toLocaleDateString('fr-FR')}
-            </span>
-          </div>
+// Section Informations du compte - Composant séparé
+const AccountInfoSection = ({ user }) => {
+  return (
+    <div className="profile-section account-info-section">
+      <h3>Informations du compte</h3>
+      <div className="account-info">
+        <div className="info-item">
+          <span className="label">Membre depuis:</span>
+          <span className="value">
+            {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+          </span>
+        </div>
+        <div className="info-item">
+          <span className="label">Rôle:</span>
+          <span className={`value role-badge ${user.role}`}>
+            {user.role === 'admin' ? 'Administrateur' : 'Client'}
+          </span>
+        </div>
+        <div className="info-item">
+          <span className="label">Dernière connexion:</span>
+          <span className="value">
+            {new Date().toLocaleDateString('fr-FR')}
+          </span>
         </div>
       </div>
     </div>
